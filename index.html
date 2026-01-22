@@ -100,13 +100,11 @@
 </header>
 
 <div class="container">
-    <!-- Dashboard -->
     <div id="dashboard" class="view active">
         <h2 style="margin-bottom:1.5rem">Deine Lernmodule</h2>
         <div id="topics-grid" class="topics-grid"></div>
     </div>
 
-    <!-- Quiz View -->
     <div id="quiz-view" class="view">
         <div class="quiz-header">
             <div style="display:flex; justify-content:space-between; align-items:center">
@@ -125,7 +123,6 @@
         </div>
     </div>
 
-    <!-- Result View -->
     <div id="result-view" class="view" style="text-align:center">
         <div class="question-card">
             <i data-lucide="award" style="width:64px; height:64px; color:#eab308; margin-bottom:1rem"></i>
@@ -135,7 +132,6 @@
         </div>
     </div>
 
-    <!-- Admin Panel -->
     <div id="admin-view" class="view">
         <div class="admin-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
@@ -212,7 +208,16 @@
         if (window.lucide) window.lucide.createIcons();
     };
     window.showDashboard = () => switchView('dashboard');
-    window.toggleAdmin = () => switchView('admin-view');
+    
+    // Passwortgeschützter Admin-Bereich
+    window.toggleAdmin = () => {
+        const pw = prompt("Bitte Admin-Passwort eingeben:");
+        if (pw === "admin123") {
+            switchView('admin-view');
+        } else {
+            alert("Falsches Passwort!");
+        }
+    };
 
     // Dashboard
     function renderDashboard() {
