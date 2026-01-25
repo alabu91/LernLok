@@ -64,7 +64,6 @@
             border-radius: 12px; background: white; text-align: left; font-size: 1rem; cursor: pointer;
         }
         .option-btn.selected { border-color: var(--sbb-red); background: #fff5f5; }
-        .option-btn.correct-highlight { border-color: #16a34a !important; background-color: #f0fdf4 !important; }
         .action-btn { width: 100%; padding: 1rem; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 1rem; }
         .btn-primary { background: var(--sbb-red); color: white; }
         .btn-next { background: #2d3748; color: white; }
@@ -76,15 +75,18 @@
         .admin-panel { background: var(--admin-bg); color: white; padding: 1.5rem; border-radius: 16px; margin-top: 1rem; }
         .admin-form { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; }
         .admin-form input, .admin-form select, .admin-form textarea {
-            padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white;
+            padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; width: 100%;
         }
         .admin-list { max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; }
-        .admin-item { padding: 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .admin-item { padding: 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #edf2f7; color: #475569; text-transform: uppercase; }
         .btn-admin-tab { background: none; border: none; color: #94a3b8; padding: 10px; cursor: pointer; font-weight: bold; }
         .btn-admin-tab.active { color: white; border-bottom: 2px solid var(--sbb-red); }
         
         #question-image { width: 100%; border-radius: 8px; margin-bottom: 1rem; max-height: 200px; object-fit: contain; background: #eee; }
+        .admin-controls { display: flex; gap: 10px; }
+        .btn-edit { color: #38bdf8; cursor: pointer; background: none; border: none; font-size: 0.8rem; }
+        .btn-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -135,7 +137,7 @@
     <div id="admin-view" class="view">
         <div class="admin-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-                <h2 style="margin:0">Admin Modus</h2>
+                <h2 id="admin-title">Admin Modus</h2>
                 <button onclick="showDashboard()" style="background:none; border:1px solid #475569; color:white; padding:5px 10px; border-radius:5px">X</button>
             </div>
 
@@ -145,25 +147,35 @@
             </div>
 
             <div id="admin-content-questions">
-                <div class="admin-form">
+                <div class="admin-form" id="question-form">
+                    <input type="hidden" id="adm-q-id">
+                    <label style="font-size:0.8rem">Thema wählen</label>
                     <select id="adm-q-topic"></select>
-                    <textarea id="adm-q-text" placeholder="Fragentext"></textarea>
-                    <input id="adm-q-options" placeholder="Optionen (mit | getrennt)">
-                    <input id="adm-q-correct" placeholder="Richtige Antwort (exakt)">
+                    <label style="font-size:0.8rem">Fragentext</label>
+                    <textarea id="adm-q-text" placeholder="Welches Signal zeigt..."></textarea>
+                    <label style="font-size:0.8rem">Optionen (mit | trennen)</label>
+                    <input id="adm-q-options" placeholder="Halt | Fahrt | Vorsicht">
+                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder mehrere mit |)</label>
+                    <input id="adm-q-correct" placeholder="Fahrt">
+                    <label style="font-size:0.8rem">Antwort-Typ</label>
                     <select id="adm-q-type">
                         <option value="single">Single Choice</option>
                         <option value="multi">Multi Choice</option>
                         <option value="fill">Texteingabe</option>
                     </select>
-                    <input id="adm-q-image" placeholder="Bild URL (optional)">
-                    <button class="btn-primary" style="padding:10px; border-radius:6px" onclick="saveQuestion()">Frage speichern</button>
+                    <label style="font-size:0.8rem">Bild URL (optional)</label>
+                    <input id="adm-q-image" placeholder="https://...">
+                    <div style="display:flex; gap:10px">
+                        <button class="btn-primary" style="flex:2; padding:10px; border-radius:6px" onclick="saveQuestion()" id="btn-save-q">Frage speichern</button>
+                        <button class="btn-next" style="flex:1; padding:10px; border-radius:6px; display:none" id="btn-cancel-q" onclick="resetQuestionForm()">Abbruch</button>
+                    </div>
                 </div>
                 <div id="admin-questions-list" class="admin-list"></div>
             </div>
 
             <div id="admin-content-topics" style="display:none">
                 <div class="admin-form">
-                    <input id="adm-t-title" placeholder="Thema Titel">
+                    <input id="adm-t-title" placeholder="Thema Titel (z.B. 300.2 Signale)">
                     <input id="adm-t-icon" placeholder="Icon Name (z.B. train, activity, book)">
                     <button class="btn-primary" style="padding:10px; border-radius:6px" onclick="saveTopic()">Thema speichern</button>
                 </div>
@@ -187,39 +199,50 @@
     let currentShuffledOptions = [];
 
     async function init() {
+        if (window.lucide) window.lucide.createIcons();
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
         supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         await loadAll();
     }
 
+    /**
+     * Natürliche Sortier-Funktion für Themen (z.B. 300.2 vor 300.14)
+     */
+    function naturalSort(a, b) {
+        return a.title.localeCompare(b.title, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+        });
+    }
+
     async function loadAll() {
-        const { data: tData } = await supabase.from('topics').select('*').order('title');
+        const { data: tData } = await supabase.from('topics').select('*');
         const { data: qData } = await supabase.from('questions').select('*');
-        topics = tData || [];
+        
+        topics = (tData || []).sort(naturalSort);
         questions = qData || [];
+        
         renderDashboard();
         renderAdmin();
     }
 
-    // Navigation
     window.switchView = (id) => {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if (window.lucide) window.lucide.createIcons();
     };
+
     window.showDashboard = () => switchView('dashboard');
     
-    // Passwortgeschützter Admin-Bereich
     window.toggleAdmin = () => {
         const pw = prompt("Bitte Admin-Passwort eingeben:");
         if (pw === "admin123") {
             switchView('admin-view');
-        } else {
+        } else if (pw !== null) {
             alert("Falsches Passwort!");
         }
     };
 
-    // Dashboard
     function renderDashboard() {
         const grid = document.getElementById('topics-grid');
         grid.innerHTML = topics.map(t => {
@@ -238,13 +261,12 @@
         if (window.lucide) window.lucide.createIcons();
     }
 
-    // Quiz Logik
     window.startQuiz = (id) => {
         currentTopic = topics.find(t => t.id === id);
         const topicQuestions = questions.filter(q => q.topic_id === id);
         if (topicQuestions.length === 0) return alert("Dieses Thema hat noch keine Fragen.");
         
-        currentTopic.qs = topicQuestions;
+        currentTopic.qs = topicQuestions.sort(() => Math.random() - 0.5); 
         currentQuestionIndex = 0;
         score = 0;
         switchView('quiz-view');
@@ -257,6 +279,7 @@
         document.getElementById('question-text').innerText = q.question_text;
         document.getElementById('question-counter').innerText = `Frage ${currentQuestionIndex+1}/${currentTopic.qs.length}`;
         document.getElementById('progress-bar').style.width = `${(currentQuestionIndex/currentTopic.qs.length)*100}%`;
+        document.getElementById('question-type-badge').innerText = q.type;
         
         const imgCont = document.getElementById('question-image-container');
         if (q.image_url) {
@@ -323,28 +346,37 @@
         }
     };
 
-    // Admin Panel Logic
     window.setAdminTab = (tab) => {
         document.querySelectorAll('.btn-admin-tab').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+tab).classList.add('active');
         document.getElementById('admin-content-questions').style.display = tab === 'questions' ? 'block' : 'none';
         document.getElementById('admin-content-topics').style.display = tab === 'topics' ? 'block' : 'none';
+        resetQuestionForm();
     };
 
     function renderAdmin() {
         const qList = document.getElementById('admin-questions-list');
-        qList.innerHTML = questions.map(q => `
-            <div class="admin-item">
-                <span style="font-size:0.8rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:70%">${q.question_text}</span>
-                <button onclick="deleteItem('questions', '${q.id}')" style="color:#ef4444; border:none; background:none">Löschen</button>
-            </div>
-        `).join('');
+        qList.innerHTML = questions.map(q => {
+            const topic = topics.find(t => t.id === q.topic_id)?.title || "Unbekannt";
+            return `
+                <div class="admin-item">
+                    <div style="flex:1; min-width:0">
+                        <div style="font-size:0.6rem; color:#94a3b8">${topic}</div>
+                        <div style="font-size:0.8rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis">${q.question_text}</div>
+                    </div>
+                    <div class="admin-controls">
+                        <button class="btn-edit" onclick="editQuestion('${q.id}')">Edit</button>
+                        <button class="btn-delete" onclick="deleteItem('questions', '${q.id}')">Löschen</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         const tList = document.getElementById('admin-topics-list');
         tList.innerHTML = topics.map(t => `
             <div class="admin-item">
                 <span>${t.title}</span>
-                <button onclick="deleteItem('topics', '${t.id}')" style="color:#ef4444; border:none; background:none">Löschen</button>
+                <button class="btn-delete" onclick="deleteItem('topics', '${t.id}')">Löschen</button>
             </div>
         `).join('');
 
@@ -352,15 +384,50 @@
         tSelect.innerHTML = topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
     }
 
+    window.editQuestion = (id) => {
+        const q = questions.find(x => x.id === id);
+        if (!q) return;
+        
+        document.getElementById('adm-q-id').value = q.id;
+        document.getElementById('adm-q-topic').value = q.topic_id;
+        document.getElementById('adm-q-text').value = q.question_text;
+        
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : q.options;
+        document.getElementById('adm-q-options').value = opts.join(' | ');
+        document.getElementById('adm-q-correct').value = q.correct_answer;
+        document.getElementById('adm-q-type').value = q.type;
+        document.getElementById('adm-q-image').value = q.image_url || '';
+        
+        document.getElementById('btn-save-q').innerText = "Änderungen speichern";
+        document.getElementById('btn-cancel-q').style.display = "inline-block";
+        document.getElementById('admin-title').innerText = "Frage bearbeiten";
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.resetQuestionForm = () => {
+        document.getElementById('adm-q-id').value = "";
+        document.getElementById('adm-q-text').value = "";
+        document.getElementById('adm-q-options').value = "";
+        document.getElementById('adm-q-correct').value = "";
+        document.getElementById('adm-q-image').value = "";
+        document.getElementById('btn-save-q').innerText = "Frage speichern";
+        document.getElementById('btn-cancel-q').style.display = "none";
+        document.getElementById('admin-title').innerText = "Admin Modus";
+    };
+
     window.saveTopic = async () => {
         const title = document.getElementById('adm-t-title').value;
         const icon = document.getElementById('adm-t-icon').value;
         if (!title) return;
         await supabase.from('topics').insert([{ title, icon }]);
         await loadAll();
+        document.getElementById('adm-t-title').value = "";
+        document.getElementById('adm-t-icon').value = "";
     };
 
     window.saveQuestion = async () => {
+        const id = document.getElementById('adm-q-id').value;
         const topic_id = document.getElementById('adm-q-topic').value;
         const question_text = document.getElementById('adm-q-text').value;
         const optionsStr = document.getElementById('adm-q-options').value;
@@ -368,10 +435,21 @@
         const type = document.getElementById('adm-q-type').value;
         const image_url = document.getElementById('adm-q-image').value;
         
-        const options = optionsStr.split('|').map(s => s.trim());
-        await supabase.from('questions').insert([{ 
+        if (!question_text || !correct_answer) return alert("Text und Antwort sind Pflichtfelder");
+
+        const options = optionsStr.split('|').map(s => s.trim()).filter(s => s !== "");
+        
+        const payload = { 
             topic_id, question_text, options, correct_answer, type, image_url 
-        }]);
+        };
+
+        if (id) {
+            await supabase.from('questions').update(payload).eq('id', id);
+        } else {
+            await supabase.from('questions').insert([payload]);
+        }
+        
+        resetQuestionForm();
         await loadAll();
     };
 
