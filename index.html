@@ -1,3 +1,5 @@
+[file name]: index.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -47,12 +49,20 @@
             background: white; border-radius: 12px; padding: 1.25rem;
             display: flex; align-items: center; gap: 1rem; cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.1s;
+            position: relative;
         }
         .topic-card:active { transform: scale(0.98); }
         .topic-icon-box {
             background: #fff5f5; color: var(--sbb-red);
             width: 48px; height: 48px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
+        }
+        .topic-locked {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #94a3b8;
+            opacity: 0.7;
         }
 
         /* Quiz */
@@ -87,6 +97,36 @@
         .admin-controls { display: flex; gap: 10px; }
         .btn-edit { color: #38bdf8; cursor: pointer; background: none; border: none; font-size: 0.8rem; }
         .btn-delete { color: #ef4444; cursor: pointer; background: none; border: none; font-size: 0.8rem; }
+
+        /* Password Protection */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .password-modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            margin: 1rem 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -185,6 +225,21 @@
     </div>
 </div>
 
+<!-- Password Protection Modal -->
+<div id="password-overlay" class="password-overlay" style="display:none">
+    <div class="password-modal">
+        <i data-lucide="lock" style="width:48px; height:48px; color:var(--sbb-red); margin-bottom:1rem"></i>
+        <h3 style="margin:0 0 0.5rem 0">Passwort erforderlich</h3>
+        <p style="color:#64748b; margin-bottom:1rem">Dieses Kapitel ist passwortgeschützt. Bitte geben Sie das Admin-Passwort ein.</p>
+        <input type="password" id="password-input" class="password-input" placeholder="Passwort eingeben">
+        <div style="display:flex; gap:10px; margin-top:1rem">
+            <button class="action-btn btn-next" style="flex:1" onclick="cancelPassword()">Abbrechen</button>
+            <button class="action-btn btn-primary" style="flex:1" onclick="submitPassword()">Bestätigen</button>
+        </div>
+        <p id="password-error" style="color:#ef4444; font-size:0.9rem; margin-top:0.5rem; display:none">Falsches Passwort!</p>
+    </div>
+</div>
+
 <script type="module">
     const SUPABASE_URL = 'https://nsidzovmagohzuwvikev.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaWR6b3ZtYWdvaHp1d3Zpa2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTYwMjIsImV4cCI6MjA4NDAzMjAyMn0.U4pnm4pvFHif_dVAQnOANSynDEKMELjSoKFBm0KyNLw';
@@ -197,6 +252,7 @@
     let score = 0;
     let selectedAnswers = [];
     let currentShuffledOptions = [];
+    let pendingTopicId = null; // Speichert das Thema, auf das der User zugreifen möchte
 
     async function init() {
         if (window.lucide) window.lucide.createIcons();
@@ -247,13 +303,15 @@
         const grid = document.getElementById('topics-grid');
         grid.innerHTML = topics.map(t => {
             const count = questions.filter(q => q.topic_id === t.id).length;
+            // Alle Kapitel sind jetzt passwortgeschützt
             return `
-                <div class="topic-card" onclick="startQuiz('${t.id}')">
+                <div class="topic-card" onclick="checkTopicPassword('${t.id}')">
                     <div class="topic-icon-box"><i data-lucide="${t.icon || 'train'}"></i></div>
                     <div style="flex:1">
                         <h3 style="margin:0">${t.title}</h3>
                         <span style="font-size:0.8rem; color:#64748b">${count} Fragen</span>
                     </div>
+                    <i data-lucide="lock" class="topic-locked" style="width:20px; height:20px"></i>
                     <i data-lucide="chevron-right" style="color:#cbd5e1"></i>
                 </div>
             `;
@@ -261,7 +319,36 @@
         if (window.lucide) window.lucide.createIcons();
     }
 
-    window.startQuiz = (id) => {
+    // Funktion zum Überprüfen des Passworts für ein Thema
+    window.checkTopicPassword = (id) => {
+        pendingTopicId = id;
+        document.getElementById('password-overlay').style.display = 'flex';
+        document.getElementById('password-input').value = '';
+        document.getElementById('password-error').style.display = 'none';
+        document.getElementById('password-input').focus();
+    };
+
+    window.submitPassword = () => {
+        const password = document.getElementById('password-input').value;
+        if (password === "admin123") {
+            document.getElementById('password-overlay').style.display = 'none';
+            if (pendingTopicId) {
+                startQuizDirect(pendingTopicId);
+            }
+        } else {
+            document.getElementById('password-error').style.display = 'block';
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-input').focus();
+        }
+    };
+
+    window.cancelPassword = () => {
+        document.getElementById('password-overlay').style.display = 'none';
+        pendingTopicId = null;
+    };
+
+    // Direkter Start des Quiz nach erfolgreicher Passworteingabe
+    function startQuizDirect(id) {
         currentTopic = topics.find(t => t.id === id);
         const topicQuestions = questions.filter(q => q.topic_id === id);
         if (topicQuestions.length === 0) return alert("Dieses Thema hat noch keine Fragen.");
@@ -271,6 +358,11 @@
         score = 0;
         switchView('quiz-view');
         renderQuestion();
+    }
+
+    window.startQuiz = (id) => {
+        // Diese Funktion wird nicht mehr direkt aufgerufen, sondern über checkTopicPassword
+        checkTopicPassword(id);
     };
 
     function renderQuestion() {
@@ -376,6 +468,7 @@
         tList.innerHTML = topics.map(t => `
             <div class="admin-item">
                 <span>${t.title}</span>
+                <span style="font-size:0.7rem; color:#94a3b8">(Passwortgeschützt)</span>
                 <button class="btn-delete" onclick="deleteItem('topics', '${t.id}')">Löschen</button>
             </div>
         `).join('');
@@ -459,7 +552,15 @@
         await loadAll();
     };
 
+    // Enter-Taste für Passworteingabe
+    document.getElementById('password-input')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            submitPassword();
+        }
+    });
+
     init();
 </script>
 </body>
 </html>
+[file content end]
