@@ -1,5 +1,3 @@
-[file name]: index.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -100,32 +98,17 @@
 
         /* Password Protection */
         .password-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7); display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
         }
         .password-modal {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+            background: white; padding: 2rem; border-radius: 16px;
+            width: 90%; max-width: 400px; text-align: center;
         }
         .password-input {
-            width: 100%;
-            padding: 12px;
-            margin: 1rem 0;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
+            width: 100%; padding: 12px; margin: 1rem 0;
+            border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem;
         }
     </style>
 </head>
@@ -191,20 +174,26 @@
                     <input type="hidden" id="adm-q-id">
                     <label style="font-size:0.8rem">Thema wählen</label>
                     <select id="adm-q-topic"></select>
+                    
                     <label style="font-size:0.8rem">Fragentext</label>
                     <textarea id="adm-q-text" placeholder="Welches Signal zeigt..."></textarea>
-                    <label style="font-size:0.8rem">Optionen (mit | trennen)</label>
-                    <input id="adm-q-options" placeholder="Halt | Fahrt | Vorsicht">
-                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder mehrere mit |)</label>
+                    
+                    <label style="font-size:0.8rem">Optionen (mit Komma trennen)</label>
+                    <input id="adm-q-options" placeholder="Halt, Fahrt, Vorsicht">
+                    
+                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder bei Multi-Choice mit Komma)</label>
                     <input id="adm-q-correct" placeholder="Fahrt">
+                    
                     <label style="font-size:0.8rem">Antwort-Typ</label>
                     <select id="adm-q-type">
                         <option value="single">Single Choice</option>
                         <option value="multi">Multi Choice</option>
                         <option value="fill">Texteingabe</option>
                     </select>
+                    
                     <label style="font-size:0.8rem">Bild URL (optional)</label>
                     <input id="adm-q-image" placeholder="https://...">
+                    
                     <div style="display:flex; gap:10px">
                         <button class="btn-primary" style="flex:2; padding:10px; border-radius:6px" onclick="saveQuestion()" id="btn-save-q">Frage speichern</button>
                         <button class="btn-next" style="flex:1; padding:10px; border-radius:6px; display:none" id="btn-cancel-q" onclick="resetQuestionForm()">Abbruch</button>
@@ -225,12 +214,11 @@
     </div>
 </div>
 
-<!-- Password Protection Modal -->
 <div id="password-overlay" class="password-overlay" style="display:none">
     <div class="password-modal">
         <i data-lucide="lock" style="width:48px; height:48px; color:var(--sbb-red); margin-bottom:1rem"></i>
         <h3 style="margin:0 0 0.5rem 0">Passwort erforderlich</h3>
-        <p style="color:#64748b; margin-bottom:1rem">Dieses Kapitel ist passwortgeschützt. Bitte geben Sie das Admin-Passwort ein.</p>
+        <p style="color:#64748b; margin-bottom:1rem">Bitte geben Sie das Admin-Passwort ein.</p>
         <input type="password" id="password-input" class="password-input" placeholder="Passwort eingeben">
         <div style="display:flex; gap:10px; margin-top:1rem">
             <button class="action-btn btn-next" style="flex:1" onclick="cancelPassword()">Abbrechen</button>
@@ -252,7 +240,7 @@
     let score = 0;
     let selectedAnswers = [];
     let currentShuffledOptions = [];
-    let pendingTopicId = null; // Speichert das Thema, auf das der User zugreifen möchte
+    let pendingTopicId = null;
 
     async function init() {
         if (window.lucide) window.lucide.createIcons();
@@ -261,23 +249,15 @@
         await loadAll();
     }
 
-    /**
-     * Natürliche Sortier-Funktion für Themen (z.B. 300.2 vor 300.14)
-     */
     function naturalSort(a, b) {
-        return a.title.localeCompare(b.title, undefined, {
-            numeric: true,
-            sensitivity: 'base'
-        });
+        return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
     }
 
     async function loadAll() {
         const { data: tData } = await supabase.from('topics').select('*');
         const { data: qData } = await supabase.from('questions').select('*');
-        
         topics = (tData || []).sort(naturalSort);
         questions = qData || [];
-        
         renderDashboard();
         renderAdmin();
     }
@@ -292,18 +272,14 @@
     
     window.toggleAdmin = () => {
         const pw = prompt("Bitte Admin-Passwort eingeben:");
-        if (pw === "admin123") {
-            switchView('admin-view');
-        } else if (pw !== null) {
-            alert("Falsches Passwort!");
-        }
+        if (pw === "admin123") switchView('admin-view');
+        else if (pw !== null) alert("Falsches Passwort!");
     };
 
     function renderDashboard() {
         const grid = document.getElementById('topics-grid');
         grid.innerHTML = topics.map(t => {
             const count = questions.filter(q => q.topic_id === t.id).length;
-            // Alle Kapitel sind jetzt passwortgeschützt
             return `
                 <div class="topic-card" onclick="checkTopicPassword('${t.id}')">
                     <div class="topic-icon-box"><i data-lucide="${t.icon || 'train'}"></i></div>
@@ -319,7 +295,6 @@
         if (window.lucide) window.lucide.createIcons();
     }
 
-    // Funktion zum Überprüfen des Passworts für ein Thema
     window.checkTopicPassword = (id) => {
         pendingTopicId = id;
         document.getElementById('password-overlay').style.display = 'flex';
@@ -332,9 +307,7 @@
         const password = document.getElementById('password-input').value;
         if (password === "admin123") {
             document.getElementById('password-overlay').style.display = 'none';
-            if (pendingTopicId) {
-                startQuizDirect(pendingTopicId);
-            }
+            if (pendingTopicId) startQuizDirect(pendingTopicId);
         } else {
             document.getElementById('password-error').style.display = 'block';
             document.getElementById('password-input').value = '';
@@ -347,23 +320,16 @@
         pendingTopicId = null;
     };
 
-    // Direkter Start des Quiz nach erfolgreicher Passworteingabe
     function startQuizDirect(id) {
         currentTopic = topics.find(t => t.id === id);
         const topicQuestions = questions.filter(q => q.topic_id === id);
         if (topicQuestions.length === 0) return alert("Dieses Thema hat noch keine Fragen.");
-        
         currentTopic.qs = topicQuestions.sort(() => Math.random() - 0.5); 
         currentQuestionIndex = 0;
         score = 0;
         switchView('quiz-view');
         renderQuestion();
     }
-
-    window.startQuiz = (id) => {
-        // Diese Funktion wird nicht mehr direkt aufgerufen, sondern über checkTopicPassword
-        checkTopicPassword(id);
-    };
 
     function renderQuestion() {
         const q = currentTopic.qs[currentQuestionIndex];
@@ -377,9 +343,7 @@
         if (q.image_url) {
             document.getElementById('question-image').src = q.image_url;
             imgCont.style.display = 'block';
-        } else {
-            imgCont.style.display = 'none';
-        }
+        } else imgCont.style.display = 'none';
 
         const optCont = document.getElementById('options-container');
         optCont.innerHTML = '';
@@ -418,7 +382,9 @@
             correct = document.getElementById('q-fill').value.trim().toLowerCase() === q.correct_answer.toLowerCase();
         } else {
             const user = selectedAnswers.map(i => currentShuffledOptions[i]).sort();
-            const valid = q.correct_answer.split('|').map(s => s.trim()).sort();
+            // Erlaube jetzt sowohl | als auch Komma als Trenner für die Überprüfung
+            const separators = /[|,]/;
+            const valid = q.correct_answer.split(separators).map(s => s.trim()).sort();
             correct = JSON.stringify(user) === JSON.stringify(valid);
         }
         if (correct) score++;
@@ -468,7 +434,6 @@
         tList.innerHTML = topics.map(t => `
             <div class="admin-item">
                 <span>${t.title}</span>
-                <span style="font-size:0.7rem; color:#94a3b8">(Passwortgeschützt)</span>
                 <button class="btn-delete" onclick="deleteItem('topics', '${t.id}')">Löschen</button>
             </div>
         `).join('');
@@ -480,21 +445,18 @@
     window.editQuestion = (id) => {
         const q = questions.find(x => x.id === id);
         if (!q) return;
-        
         document.getElementById('adm-q-id').value = q.id;
         document.getElementById('adm-q-topic').value = q.topic_id;
         document.getElementById('adm-q-text').value = q.question_text;
-        
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : q.options;
-        document.getElementById('adm-q-options').value = opts.join(' | ');
+        // Beim Editieren zeigen wir die Optionen mit Komma getrennt an
+        document.getElementById('adm-q-options').value = opts.join(', ');
         document.getElementById('adm-q-correct').value = q.correct_answer;
         document.getElementById('adm-q-type').value = q.type;
         document.getElementById('adm-q-image').value = q.image_url || '';
-        
         document.getElementById('btn-save-q').innerText = "Änderungen speichern";
         document.getElementById('btn-cancel-q').style.display = "inline-block";
         document.getElementById('admin-title').innerText = "Frage bearbeiten";
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -530,17 +492,12 @@
         
         if (!question_text || !correct_answer) return alert("Text und Antwort sind Pflichtfelder");
 
-        const options = optionsStr.split('|').map(s => s.trim()).filter(s => s !== "");
-        
-        const payload = { 
-            topic_id, question_text, options, correct_answer, type, image_url 
-        };
+        // Unterstützt jetzt Komma und Pipe als Trenner für die Eingabe
+        const options = optionsStr.split(/[|,]/).map(s => s.trim()).filter(s => s !== "");
+        const payload = { topic_id, question_text, options, correct_answer, type, image_url };
 
-        if (id) {
-            await supabase.from('questions').update(payload).eq('id', id);
-        } else {
-            await supabase.from('questions').insert([payload]);
-        }
+        if (id) await supabase.from('questions').update(payload).eq('id', id);
+        else await supabase.from('questions').insert([payload]);
         
         resetQuestionForm();
         await loadAll();
@@ -552,15 +509,11 @@
         await loadAll();
     };
 
-    // Enter-Taste für Passworteingabe
-    document.getElementById('password-input')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            submitPassword();
-        }
+    document.getElementById('password-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitPassword();
     });
 
     init();
 </script>
 </body>
 </html>
-[file content end]
