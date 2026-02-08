@@ -493,7 +493,7 @@
         if (!question_text || !correct_answer) return alert("Text und Antwort sind Pflichtfelder");
 
         // Unterstützt jetzt Komma und Pipe als Trenner für die Eingabe
-        const options = optionsStr.split(/[|,]/).map(s => s.trim()).filter(s => s !== "");
+        const options = optionsStr.split(/[|;]/).map(s => s.trim()).filter(s => s !== "");
         const payload = { topic_id, question_text, options, correct_answer, type, image_url };
 
         if (id) await supabase.from('questions').update(payload).eq('id', id);
@@ -517,4 +517,3 @@
 </script>
 </body>
 </html>
-
