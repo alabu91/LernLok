@@ -178,10 +178,10 @@
                     <label style="font-size:0.8rem">Fragentext</label>
                     <textarea id="adm-q-text" placeholder="Welches Signal zeigt..."></textarea>
                     
-                    <label style="font-size:0.8rem">Optionen (mit Komma trennen)</label>
+                    <label style="font-size:0.8rem">Optionen (mit Semikolon trennen)</label>
                     <input id="adm-q-options" placeholder="Halt, Fahrt, Vorsicht">
                     
-                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder bei Multi-Choice mit Komma)</label>
+                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder bei Multi-Choice mit ;)</label>
                     <input id="adm-q-correct" placeholder="Fahrt">
                     
                     <label style="font-size:0.8rem">Antwort-Typ</label>
@@ -492,8 +492,8 @@
         
         if (!question_text || !correct_answer) return alert("Text und Antwort sind Pflichtfelder");
 
-        // Unterstützt jetzt Komma und Pipe als Trenner für die Eingabe
-        const options = optionsStr.split(/[|;]/).map(s => s.trim()).filter(s => s !== "");
+        // Unterstützt jetzt Semikolon als Trenner für die Eingabe
+        const options = optionsStr.split(/[;]/).map(s => s.trim()).filter(s => s !== "");
         const payload = { topic_id, question_text, options, correct_answer, type, image_url };
 
         if (id) await supabase.from('questions').update(payload).eq('id', id);
