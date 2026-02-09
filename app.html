@@ -178,11 +178,11 @@
                     <label style="font-size:0.8rem">Fragentext</label>
                     <textarea id="adm-q-text" placeholder="Welches Signal zeigt..."></textarea>
                     
-                    <label style="font-size:0.8rem">Optionen (mit Semikolon trennen)</label>
-                    <input id="adm-q-options" placeholder="Halt, Fahrt, Vorsicht">
+                    <label style="font-size:0.8rem">Optionen (mit ; trennen)</label>
+                    <input id="adm-q-options" placeholder="Halt; Fahrt; Vorsicht">
                     
-                    <label style="font-size:0.8rem">Richtige Antwort (exakt wie oben oder bei Multi-Choice mit ;)</label>
-                    <input id="adm-q-correct" placeholder="Fahrt">
+                    <label style="font-size:0.8rem">Richtige Antwort (Single-Choice: exakter Text; Multi-Choice: Antworten mit ; getrennt)</label>
+                    <input id="adm-q-correct" placeholder="Fahrt; Vorsicht">
                     
                     <label style="font-size:0.8rem">Antwort-Typ</label>
                     <select id="adm-q-type">
@@ -382,9 +382,9 @@
             correct = document.getElementById('q-fill').value.trim().toLowerCase() === q.correct_answer.toLowerCase();
         } else {
             const user = selectedAnswers.map(i => currentShuffledOptions[i]).sort();
-            // Erlaube jetzt sowohl | als auch Komma als Trenner für die Überprüfung
-            const separators = /[|,]/;
-            const valid = q.correct_answer.split(separators).map(s => s.trim()).sort();
+            // Erlaubt jetzt sowohl ; als auch | oder , als Trenner in der Datenbank für Flexibilität
+            const separators = /[;|,] /;
+            const valid = q.correct_answer.split(/[;|]/).map(s => s.trim()).sort();
             correct = JSON.stringify(user) === JSON.stringify(valid);
         }
         if (correct) score++;
@@ -449,9 +449,17 @@
         document.getElementById('adm-q-topic').value = q.topic_id;
         document.getElementById('adm-q-text').value = q.question_text;
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : q.options;
-        // Beim Editieren zeigen wir die Optionen mit Komma getrennt an
-        document.getElementById('adm-q-options').value = opts.join(', ');
-        document.getElementById('adm-q-correct').value = q.correct_answer;
+        
+        // Anzeige beim Editieren jetzt mit Semikolon getrennt
+        document.getElementById('adm-q-options').value = opts.join('; ');
+        
+        // Falls in der DB Kommas sind, wandeln wir sie für das Feld in Semikolons um (für Multi-Choice Anzeige)
+        let correctDisplay = q.correct_answer;
+        if (q.type === 'multi' && correctDisplay.includes(',') && !correctDisplay.includes(';')) {
+            correctDisplay = correctDisplay.split(',').map(s => s.trim()).join('; ');
+        }
+        document.getElementById('adm-q-correct').value = correctDisplay;
+        
         document.getElementById('adm-q-type').value = q.type;
         document.getElementById('adm-q-image').value = q.image_url || '';
         document.getElementById('btn-save-q').innerText = "Änderungen speichern";
@@ -486,14 +494,24 @@
         const topic_id = document.getElementById('adm-q-topic').value;
         const question_text = document.getElementById('adm-q-text').value;
         const optionsStr = document.getElementById('adm-q-options').value;
-        const correct_answer = document.getElementById('adm-q-correct').value;
+        const correct_answer_raw = document.getElementById('adm-q-correct').value;
         const type = document.getElementById('adm-q-type').value;
         const image_url = document.getElementById('adm-q-image').value;
         
-        if (!question_text || !correct_answer) return alert("Text und Antwort sind Pflichtfelder");
+        if (!question_text || !correct_answer_raw) return alert("Text und Antwort sind Pflichtfelder");
 
-        // Unterstützt jetzt Semikolon als Trenner für die Eingabe
-        const options = optionsStr.split(/[;]/).map(s => s.trim()).filter(s => s !== "");
+        // Trennt Optionen jetzt ausschließlich am Semikolon
+        const options = optionsStr.split(';').map(s => s.trim()).filter(s => s !== "");
+        
+        // Bereinigt die Lösung (falls Multi-Choice mit Semikolon eingegeben wurde)
+        // Wir speichern Multi-Choice Lösungen intern mit Semikolon getrennt
+        let correct_answer = correct_answer_raw;
+        if (type === 'multi') {
+            correct_answer = correct_answer_raw.split(';').map(s => s.trim()).filter(s => s !== "").join('; ');
+        } else {
+            correct_answer = correct_answer_raw.trim();
+        }
+
         const payload = { topic_id, question_text, options, correct_answer, type, image_url };
 
         if (id) await supabase.from('questions').update(payload).eq('id', id);
