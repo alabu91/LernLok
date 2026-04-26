@@ -2,43 +2,567 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LernLok - Wartung</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LernLok PRO - Training für Lokpersonal</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --brand-primary: #0f172a;    
+            --brand-accent: #3b82f6;     
+            --brand-accent-soft: #eff6ff; 
+            --text-dark: #1e293b;        
+            --bg-light: #f8fafc;         
+            --admin-bg: #0f172a;         
+            --success-green: #10b981;    
+            --error-red: #ef4444;        
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: -apple-system, system-ui, sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0; padding: 0;
+            color: var(--text-dark);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: var(--brand-primary);
+            color: white;
+            padding: 1rem;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #2d3748;
-            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            max-width: 400px;
+
+        .container { max-width: 600px; margin: 0 auto; padding: 1rem; padding-bottom: 4rem; }
+
+        .view { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .view.active { display: block; opacity: 1; }
+
+        /* Dashboard */
+        .topics-grid { display: grid; gap: 1rem; }
+        .topic-card {
+            background: white; 
+            border-radius: 16px; 
+            padding: 1.25rem;
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
         }
-        .icon {
-            font-size: 50px;
-            margin-bottom: 1rem;
+        .topic-card:hover { border-color: var(--brand-accent); }
+        .topic-card:active { transform: scale(0.98); background-color: var(--brand-accent-soft); }
+        
+        .topic-icon-box {
+            background: var(--brand-accent-soft); 
+            color: var(--brand-accent);
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
         }
-        h1 { color: #d5001c; margin-bottom: 0.5rem; }
-        p { line-height: 1.5; color: #64748b; }
+
+        /* Quiz UI */
+        .quiz-header { position: sticky; top: 70px; background: var(--bg-light); padding-bottom: 0.5rem; z-index: 90; }
+        .progress-container { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 1rem 0; }
+        #progress-bar { height: 100%; background: var(--brand-accent); width: 0%; transition: width 0.4s ease; }
+        
+        .question-card { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            margin-top: 1rem;
+        }
+        
+        #question-image { 
+            width: 100%; border-radius: 12px; margin-bottom: 1.5rem; 
+            max-height: 250px; object-fit: contain; 
+            background: #f1f5f9; border: 1px solid #e2e8f0; 
+        }
+
+        .option-btn {
+            width: 100%; padding: 1.1rem; margin-bottom: 0.75rem; border: 2px solid #f1f5f9;
+            border-radius: 14px; background: white; text-align: left; font-size: 1rem; 
+            cursor: pointer; transition: all 0.2s; color: var(--text-dark);
+        }
+        .option-btn:hover { border-color: #cbd5e1; }
+        .option-btn.selected { border-color: var(--brand-accent); background: var(--brand-accent-soft); color: var(--brand-primary); font-weight: 600; }
+        
+        .fill-input {
+            width: 100%; padding: 1.1rem; border: 2px solid var(--brand-accent);
+            border-radius: 14px; font-size: 1.1rem; margin-bottom: 1rem; outline: none;
+        }
+
+        .action-btn { width: 100%; padding: 1.1rem; border: none; border-radius: 14px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 1rem; transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--brand-accent); color: white; }
+        .btn-next { background: var(--brand-primary); color: white; }
+        
+        .fb-box { padding: 1.25rem; border-radius: 12px; margin-top: 1.25rem; font-weight: 500; }
+        .success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .error { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+
+        /* Admin Layout */
+        .admin-panel { background: var(--admin-bg); color: white; padding: 1.5rem; border-radius: 20px; margin-top: 1rem; }
+        .admin-form { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 1.25rem; border-radius: 14px; }
+        .admin-form input, .admin-form select, .admin-form textarea {
+            padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; width: 100%;
+        }
+        .admin-list { max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; }
+        .admin-item { padding: 12px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+
+        .badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #334155; color: white; text-transform: uppercase; }
+
+        /* Overlays */
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); 
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal {
+            background: white; padding: 2rem; border-radius: 24px;
+            width: 90%; max-width: 400px; text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon">🚧</div>
-        <h1>Kurze Pause!</h1>
-        <p>LernLok wird gerade aktualisiert. Wir sind in Kürze wieder für dich da.</p>
-        <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8;">
-            Voraussichtliche Rückkehr: April 2026
+
+<header>
+    <div style="display:flex; align-items:center; gap:10px; cursor:pointer" onclick="showDashboard()">
+        <i data-lucide="train"></i>
+        <h1 style="margin:0; font-size:1.1rem; letter-spacing: 0.5px">LERNLOK PRO</h1>
+    </div>
+    <button onclick="requestAdmin()" style="background:none; border:none; color:white; cursor:pointer">
+        <i data-lucide="settings"></i>
+    </button>
+</header>
+
+<div class="container">
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="view active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+            <h2 style="margin:0">Trainingsmodule</h2>
+            <span id="total-q-count" class="badge">0 Fragen</span>
+        </div>
+        <div id="topics-grid" class="topics-grid"></div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz-view" class="view">
+        <div class="quiz-header">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <span id="question-type-badge" class="badge">TYP</span>
+                <span id="question-counter" style="font-size:0.85rem; color:#64748b; font-weight:600">Frage 0/0</span>
+            </div>
+            <div class="progress-container"><div id="progress-bar"></div></div>
+        </div>
+        <div class="question-card">
+            <div id="question-image-container" style="display:none"><img id="question-image" src="" alt="Signalgrafik"></div>
+            <h3 id="question-text" style="margin-top:0; line-height:1.4; font-size:1.2rem">Lade Frage...</h3>
+            <div id="options-container"></div>
+            <div id="feedback-area"></div>
+            <button id="check-btn" class="action-btn btn-primary" onclick="checkCurrentAnswer()">Überprüfen</button>
+            <button id="next-btn" class="action-btn btn-next" style="display:none" onclick="handleNext()">Weiter</button>
         </div>
     </div>
+
+    <!-- RESULT -->
+    <div id="result-view" class="view" style="text-align:center">
+        <div class="question-card">
+            <i data-lucide="award" style="width:80px; height:80px; color:#eab308; margin-bottom:1rem"></i>
+            <h2 id="result-percentage" style="font-size:3.5rem; margin:0">0%</h2>
+            <p id="result-text" style="color:#64748b; font-size:1.1rem; margin-bottom:2rem">Ergebnis</p>
+            <div style="display:flex; gap:10px">
+                <button class="action-btn btn-next" style="flex:1" onclick="restartCurrentModule()">Nochmal</button>
+                <button class="action-btn btn-primary" style="flex:1" onclick="showDashboard()">Fertig</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin-view" class="view">
+        <div class="admin-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+                <h2 id="admin-title" style="margin:0">Admin Center</h2>
+                <button onclick="showDashboard()" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:8px; border-radius:50%">
+                    <i data-lucide="x" style="width:20px; height:20px"></i>
+                </button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:1.5rem">
+                <button class="badge" onclick="setAdminTab('questions')" id="tab-questions" style="flex:1; cursor:pointer; border:none; padding:10px">Fragen</button>
+                <button class="badge" onclick="setAdminTab('topics')" id="tab-topics" style="flex:1; cursor:pointer; border:none; padding:10px">Themen</button>
+            </div>
+
+            <div id="admin-content-questions">
+                <div class="admin-form">
+                    <input type="hidden" id="adm-q-id">
+                    <select id="adm-q-topic"></select>
+                    <textarea id="adm-q-text" placeholder="Fragentext..." rows="3"></textarea>
+                    <input id="adm-q-options" placeholder="Option A; Option B; Option C">
+                    <input id="adm-q-correct" placeholder="Richtige Antwort (exakt oder A;B)">
+                    <select id="adm-q-type">
+                        <option value="single">Single Choice</option>
+                        <option value="multi">Multi Choice</option>
+                        <option value="fill">Texteingabe</option>
+                    </select>
+                    <input id="adm-q-image" placeholder="Bild-URL (https://...)">
+                    <button class="btn-primary" style="padding:12px; border-radius:8px" onclick="saveQuestion()" id="btn-save-q">Speichern</button>
+                </div>
+                <div id="admin-questions-list" class="admin-list"></div>
+            </div>
+
+            <div id="admin-content-topics" style="display:none">
+                <div class="admin-form">
+                    <input id="adm-t-title" placeholder="Modul Name (z.B. Signale 300.2)">
+                    <input id="adm-t-icon" placeholder="Lucide Icon (train, book, alert-circle)">
+                    <button class="btn-primary" style="padding:12px; border-radius:8px" onclick="saveTopic()">Thema anlegen</button>
+                </div>
+                <div id="admin-topics-list" class="admin-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PASSWORT MODAL -->
+<div id="password-overlay" class="overlay">
+    <div class="modal">
+        <i data-lucide="lock" style="width:48px; height:48px; color:var(--brand-accent); margin-bottom:1rem"></i>
+        <h3 style="margin:0 0 0.5rem 0">Zugriff geschützt</h3>
+        <p style="color:#64748b; margin-bottom:1.5rem">Geben Sie das Passwort ein:</p>
+        <input type="password" id="password-input" class="fill-input" style="text-align:center" placeholder="****">
+        <div style="display:flex; gap:10px">
+            <button class="action-btn btn-next" style="margin:0; flex:1" onclick="closeModals()">Abbruch</button>
+            <button class="action-btn btn-primary" style="margin:0; flex:1" onclick="validatePassword()">Bestätigen</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    const SUPABASE_URL = 'https://nsidzovmagohzuwvikev.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaWR6b3ZtYWdvaHp1d3Zpa2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTYwMjIsImV4cCI6MjA4NDAzMjAyMn0.U4pnm4pvFHif_dVAQnOANSynDEKMELjSoKFBm0KyNLw';
+
+    let supabase;
+    let topics = [];
+    let questions = [];
+    let currentTopic = null;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedAnswers = [];
+    let currentShuffledOptions = [];
+    let adminMode = false;
+    let pendingAction = null; // 'admin' oder 'topic_id'
+
+    async function init() {
+        if (window.lucide) window.lucide.createIcons();
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        await loadData();
+        setupGlobalEvents();
+    }
+
+    function setupGlobalEvents() {
+        document.getElementById('password-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validatePassword();
+        });
+    }
+
+    async function loadData() {
+        try {
+            const { data: tData } = await supabase.from('topics').select('*');
+            const { data: qData } = await supabase.from('questions').select('*');
+            topics = (tData || []).sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+            questions = qData || [];
+            
+            document.getElementById('total-q-count').innerText = `${questions.length} Fragen`;
+            renderDashboard();
+            renderAdmin();
+        } catch (e) {
+            console.error("Ladefehler:", e);
+        }
+    }
+
+    window.switchView = (id) => {
+        document.querySelectorAll('.view').forEach(v => {
+            v.classList.remove('active');
+            v.style.display = 'none';
+        });
+        const active = document.getElementById(id);
+        active.style.display = 'block';
+        setTimeout(() => active.classList.add('active'), 50);
+        if (window.lucide) window.lucide.createIcons();
+        window.scrollTo(0,0);
+    };
+
+    window.showDashboard = () => switchView('dashboard');
+
+    window.requestAdmin = () => {
+        pendingAction = 'admin';
+        document.getElementById('password-overlay').style.display = 'flex';
+        document.getElementById('password-input').focus();
+    };
+
+    window.requestTopic = (id) => {
+        pendingAction = id;
+        // Optional: Hier Passwortschutz für Themen. Aktuell direkt start:
+        startQuiz(id);
+    };
+
+    window.validatePassword = () => {
+        const pw = document.getElementById('password-input').value;
+        if (pw === "admin123") {
+            closeModals();
+            if (pendingAction === 'admin') switchView('admin-view');
+            else startQuiz(pendingAction);
+        } else {
+            alert("Falsches Passwort!");
+            document.getElementById('password-input').value = "";
+        }
+    };
+
+    window.closeModals = () => {
+        document.getElementById('password-overlay').style.display = 'none';
+        document.getElementById('password-input').value = "";
+    };
+
+    function renderDashboard() {
+        const grid = document.getElementById('topics-grid');
+        grid.innerHTML = topics.map(t => {
+            const count = questions.filter(q => q.topic_id === t.id).length;
+            return `
+                <div class="topic-card" onclick="requestTopic('${t.id}')">
+                    <div class="topic-icon-box"><i data-lucide="${t.icon || 'book'}"></i></div>
+                    <div style="flex:1">
+                        <h3 style="margin:0; font-size:1rem">${t.title}</h3>
+                        <span style="font-size:0.75rem; color:#64748b; font-weight:500">${count} Fragen verfügbar</span>
+                    </div>
+                    <i data-lucide="chevron-right" style="color:#cbd5e1; width:18px"></i>
+                </div>
+            `;
+        }).join('');
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.startQuiz = (id) => {
+        const moduleQs = questions.filter(q => q.topic_id === id);
+        if (moduleQs.length === 0) return alert("Keine Fragen in diesem Modul.");
+        
+        currentTopic = { 
+            ...topics.find(t => t.id === id), 
+            qs: moduleQs.sort(() => Math.random() - 0.5) 
+        };
+        currentQuestionIndex = 0;
+        score = 0;
+        switchView('quiz-view');
+        renderQuestion();
+    };
+
+    window.restartCurrentModule = () => startQuiz(currentTopic.id);
+
+    function renderQuestion() {
+        const q = currentTopic.qs[currentQuestionIndex];
+        selectedAnswers = [];
+        
+        document.getElementById('question-text').innerText = q.question_text;
+        document.getElementById('question-counter').innerText = `Frage ${currentQuestionIndex + 1} / ${currentTopic.qs.length}`;
+        document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / currentTopic.qs.length) * 100}%`;
+        
+        const typeBadge = document.getElementById('question-type-badge');
+        typeBadge.innerText = q.type === 'multi' ? 'Mehrfachwahl' : (q.type === 'fill' ? 'Eingabe' : 'Einzelwahl');
+        
+        const imgCont = document.getElementById('question-image-container');
+        if (q.image_url) {
+            document.getElementById('question-image').src = q.image_url;
+            imgCont.style.display = 'block';
+        } else imgCont.style.display = 'none';
+
+        const optCont = document.getElementById('options-container');
+        optCont.innerHTML = '';
+
+        if (q.type === 'fill') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'q-fill-input';
+            input.className = 'fill-input';
+            input.placeholder = 'Antwort hier tippen...';
+            input.onkeypress = (e) => { if(e.key === 'Enter') checkCurrentAnswer(); };
+            optCont.appendChild(input);
+            setTimeout(() => input.focus(), 300);
+        } else {
+            const opts = Array.isArray(q.options) ? q.options : JSON.parse(q.options || "[]");
+            currentShuffledOptions = [...opts].sort(() => Math.random() - 0.5);
+            
+            currentShuffledOptions.forEach((text, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = text;
+                btn.onclick = () => handleOptionSelect(idx, btn, q.type);
+                optCont.appendChild(btn);
+            });
+        }
+
+        document.getElementById('check-btn').style.display = 'block';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('feedback-area').innerHTML = '';
+    }
+
+    function handleOptionSelect(idx, btn, type) {
+        if (type === 'single') {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            selectedAnswers = [idx];
+            btn.classList.add('selected');
+        } else {
+            btn.classList.toggle('selected');
+            if (selectedAnswers.includes(idx)) {
+                selectedAnswers = selectedAnswers.filter(i => i !== idx);
+            } else {
+                selectedAnswers.push(idx);
+            }
+        }
+    }
+
+    window.checkCurrentAnswer = () => {
+        const q = currentTopic.qs[currentQuestionIndex];
+        let isCorrect = false;
+
+        if (q.type === 'fill') {
+            const val = document.getElementById('q-fill-input').value.trim().toLowerCase();
+            isCorrect = val === q.correct_answer.toLowerCase().trim();
+        } else {
+            const userTexts = selectedAnswers.map(i => currentShuffledOptions[i]).sort();
+            const correctTexts = q.correct_answer.split(';').map(s => s.trim()).filter(s => s !== "").sort();
+            isCorrect = JSON.stringify(userTexts) === JSON.stringify(correctTexts);
+        }
+
+        if (isCorrect) score++;
+
+        const fb = document.getElementById('feedback-area');
+        fb.innerHTML = `
+            <div class="fb-box ${isCorrect ? 'success' : 'error'}">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+                    <i data-lucide="${isCorrect ? 'check-circle' : 'alert-circle'}" style="width:20px"></i>
+                    <strong>${isCorrect ? 'Korrekt!' : 'Nicht ganz richtig'}</strong>
+                </div>
+                ${!isCorrect ? `<div style="font-size:0.9rem">Lösung: ${q.correct_answer}</div>` : ''}
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+
+        document.getElementById('check-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'block';
+    };
+
+    window.handleNext = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentTopic.qs.length) {
+            renderQuestion();
+        } else {
+            showResults();
+        }
+    };
+
+    function showResults() {
+        switchView('result-view');
+        const percent = Math.round((score / currentTopic.qs.length) * 100);
+        document.getElementById('result-percentage').innerText = percent + "%";
+        document.getElementById('result-text').innerText = `${score} von ${currentTopic.qs.length} Fragen richtig beantwortet.`;
+    }
+
+    // ADMIN LOGIC
+    window.setAdminTab = (tab) => {
+        document.getElementById('admin-content-questions').style.display = tab === 'questions' ? 'block' : 'none';
+        document.getElementById('admin-content-topics').style.display = tab === 'topics' ? 'block' : 'none';
+        document.querySelectorAll('.badge').forEach(b => b.style.opacity = "0.5");
+        document.getElementById('tab-' + tab).style.opacity = "1";
+    };
+
+    function renderAdmin() {
+        const qList = document.getElementById('admin-questions-list');
+        qList.innerHTML = questions.slice().reverse().map(q => `
+            <div class="admin-item">
+                <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:70%">
+                    <small style="color:#94a3b8">${topics.find(t => t.id === q.topic_id)?.title}</small><br>
+                    ${q.question_text}
+                </div>
+                <div style="display:flex; gap:10px">
+                    <button onclick="editQuestion('${q.id}')" style="color:var(--brand-accent); background:none; border:none; cursor:pointer">Edit</button>
+                    <button onclick="deleteItem('questions', '${q.id}')" style="color:var(--error-red); background:none; border:none; cursor:pointer">X</button>
+                </div>
+            </div>
+        `).join('');
+
+        const tList = document.getElementById('admin-topics-list');
+        tList.innerHTML = topics.map(t => `
+            <div class="admin-item">
+                <span>${t.title}</span>
+                <button onclick="deleteItem('topics', '${t.id}')" style="color:var(--error-red); background:none; border:none; cursor:pointer">X</button>
+            </div>
+        `).join('');
+
+        const tSelect = document.getElementById('adm-q-topic');
+        tSelect.innerHTML = topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+    }
+
+    window.saveQuestion = async () => {
+        const id = document.getElementById('adm-q-id').value;
+        const payload = {
+            topic_id: document.getElementById('adm-q-topic').value,
+            question_text: document.getElementById('adm-q-text').value,
+            options: document.getElementById('adm-q-options').value.split(';').map(s => s.trim()).filter(s => s !== ""),
+            correct_answer: document.getElementById('adm-q-correct').value,
+            type: document.getElementById('adm-q-type').value,
+            image_url: document.getElementById('adm-q-image').value
+        };
+
+        if (id) await supabase.from('questions').update(payload).eq('id', id);
+        else await supabase.from('questions').insert([payload]);
+
+        document.getElementById('adm-q-id').value = "";
+        document.getElementById('adm-q-text').value = "";
+        document.getElementById('adm-q-options').value = "";
+        document.getElementById('adm-q-correct').value = "";
+        document.getElementById('adm-q-image').value = "";
+        await loadData();
+    };
+
+    window.editQuestion = (id) => {
+        const q = questions.find(x => x.id === id);
+        document.getElementById('adm-q-id').value = q.id;
+        document.getElementById('adm-q-topic').value = q.topic_id;
+        document.getElementById('adm-q-text').value = q.question_text;
+        document.getElementById('adm-q-options').value = (Array.isArray(q.options) ? q.options : JSON.parse(q.options)).join('; ');
+        document.getElementById('adm-q-correct').value = q.correct_answer;
+        document.getElementById('adm-q-type').value = q.type;
+        document.getElementById('adm-q-image').value = q.image_url || "";
+        window.scrollTo(0,0);
+    };
+
+    window.saveTopic = async () => {
+        const title = document.getElementById('adm-t-title').value;
+        const icon = document.getElementById('adm-t-icon').value;
+        if (!title) return;
+        await supabase.from('topics').insert([{ title, icon }]);
+        await loadData();
+        document.getElementById('adm-t-title').value = "";
+    };
+
+    window.deleteItem = async (table, id) => {
+        if (!confirm("Wirklich löschen?")) return;
+        await supabase.from(table).delete().eq('id', id);
+        await loadData();
+    };
+
+    init();
+</script>
 </body>
 </html>
