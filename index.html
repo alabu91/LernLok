@@ -487,9 +487,9 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useCallback } = React;
 
-const SUPABASE_URL = "https://nsidzovmagohzuwvikev.supabase.co";
+const SUPABASE_URL = "https://nsidzovmagohzuwvikev.sb.co";
 const SUPABASE_KEY = "sb_publishable_Z5H4qhw4pkVjO27eqG9aBQ_0w6RwTyN";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.sb.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TYPE_LABEL = {
   sc: "Single Choice",
@@ -752,7 +752,7 @@ function LoginScreen({ onLoggedIn }) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       setError("Login fehlgeschlagen. E-Mail/Passwort prüfen.");
@@ -838,7 +838,7 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
     }
     setSaving(true);
     const payload = buildPayload();
-    const { error } = await supabase.from("questions").insert({
+    const { error } = await sb.from("questions").insert({
       chapter_code: chapterCode,
       type,
       prompt: prompt.trim(),
@@ -1037,11 +1037,11 @@ function FdvTrainerCloud() {
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    sb.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const { data: listener } = sb.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
     });
     return () => listener.subscription.unsubscribe();
@@ -1049,9 +1049,9 @@ function FdvTrainerCloud() {
 
   const loadData = useCallback(async (userId) => {
     setDataLoaded(false);
-    const { data: chapterRows } = await supabase.from("chapters").select("*").order("sort_order").order("code");
-    const { data: questionRows } = await supabase.from("questions").select("*");
-    const { data: progressRows } = await supabase.from("progress").select("*").eq("user_id", userId);
+    const { data: chapterRows } = await sb.from("chapters").select("*").order("sort_order").order("code");
+    const { data: questionRows } = await sb.from("questions").select("*");
+    const { data: progressRows } = await sb.from("progress").select("*").eq("user_id", userId);
 
     const byChapter = {};
     (chapterRows || []).forEach((c) => {
@@ -1118,7 +1118,7 @@ function FdvTrainerCloud() {
     };
     setProgress((p) => ({ ...p, [q.id]: nextRow }));
     setSessionQuiz((s) => ({ ...s, correctCount: s.correctCount + (correct ? 1 : 0) }));
-    await supabase.from("progress").upsert(nextRow);
+    await sb.from("progress").upsert(nextRow);
   }
 
   function next() {
@@ -1137,7 +1137,7 @@ function FdvTrainerCloud() {
     setScreen("home");
   }
   async function logout() {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     setSession(null);
     setChapters([]);
     setProgress({});
