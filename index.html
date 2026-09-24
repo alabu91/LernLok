@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LernLok</title>
+<title>FDV-Trainer</title>
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#75c93b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="FDV-Trainer" />
+<meta name="mobile-web-app-capable" content="yes" />
 <style>
   html, body { margin: 0; padding: 0; background: #f2f3f3; }
   #root { min-height: 100vh; }
@@ -745,6 +754,118 @@ function QuestionBody({ q, draft, setDraft, revealed }) {
   return null;
 }
 
+// ---- Forced password change screen (shown after first login with a temp password) ----
+function ForcePasswordChangeScreen({ onDone }) {
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (pw1.length < 6) {
+      setError("Das Passwort muss mindestens 6 Zeichen haben.");
+      return;
+    }
+    if (pw1 !== pw2) {
+      setError("Die beiden Passwörter stimmen nicht überein.");
+      return;
+    }
+    setBusy(true);
+    const { error: updErr } = await sb.auth.updateUser({
+      password: pw1,
+      data: { must_change_password: false },
+    });
+    setBusy(false);
+    if (updErr) {
+      setError("Fehler beim Setzen des Passworts: " + updErr.message);
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <div className="fdv-app">
+      <div className="fdv-login-wrap">
+        <h1 className="fdv-title">Neues Passwort setzen</h1>
+        <p className="fdv-sub">Aus Sicherheitsgründen musst du beim ersten Login ein eigenes Passwort vergeben.</p>
+        <form className="fdv-card fdv-login-card" onSubmit={submit}>
+          <label className="fdv-label">Neues Passwort</label>
+          <input className="fdv-input" type="password" required value={pw1} onChange={(e) => setPw1(e.target.value)} />
+          <label className="fdv-label">Neues Passwort wiederholen</label>
+          <input className="fdv-input" type="password" required value={pw2} onChange={(e) => setPw2(e.target.value)} />
+          {error && <div className="fdv-form-error">{error}</div>}
+          <button className="fdv-next-btn" type="submit" disabled={busy}>
+            {busy ? "Speichern …" : "Passwort setzen"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---- Admin screen: create a new user with a temporary password ----
+function AddUserScreen({ accessToken, onCancel }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(null);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess(null);
+    if (!email.trim() || password.length < 6) {
+      setError("Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen angeben.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken,
+        },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Unbekannter Fehler beim Erstellen des Nutzers.");
+      } else {
+        setSuccess(data.user.email);
+        setEmail("");
+        setPassword("");
+      }
+    } catch (err) {
+      setError("Verbindungsfehler: " + err.message);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neuer Nutzer</span>
+      <form onSubmit={submit}>
+        <label className="fdv-label">E-Mail</label>
+        <input className="fdv-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className="fdv-label">Temporäres Passwort</label>
+        <input className="fdv-input" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {error && <div className="fdv-form-error">{error}</div>}
+        {success && <div className="fdv-explanation"><strong>Erstellt.</strong> {success} kann sich jetzt mit dem temporären Passwort einloggen und muss danach sofort ein eigenes setzen.</div>}
+        <div className="fdv-form-actions">
+          <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
+          <button type="submit" className="fdv-result-btn primary" disabled={busy}>
+            {busy ? "Erstellen …" : "Nutzer erstellen"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ---- Login screen ----
 function LoginScreen({ onLoggedIn }) {
   const [email, setEmail] = useState("");
@@ -768,7 +889,7 @@ function LoginScreen({ onLoggedIn }) {
   return (
     <div className="fdv-app">
       <div className="fdv-login-wrap">
-        <h1 className="fdv-title">LernLok</h1>
+        <h1 className="fdv-title">FDV-Trainer</h1>
         <p className="fdv-sub">Melde dich mit deinem Zugang an.</p>
         <form className="fdv-card fdv-login-card" onSubmit={submit}>
           <label className="fdv-label">E-Mail</label>
@@ -1035,6 +1156,7 @@ function FdvTrainerCloud() {
   const [chapters, setChapters] = useState([]);
   const [progress, setProgress] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [screen, setScreen] = useState("home");
   const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
@@ -1056,6 +1178,7 @@ function FdvTrainerCloud() {
     const { data: chapterRows } = await sb.from("chapters").select("*").order("sort_order").order("code");
     const { data: questionRows } = await sb.from("questions").select("*");
     const { data: progressRows } = await sb.from("progress").select("*").eq("user_id", userId);
+    const { data: adminRow } = await sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle();
 
     const byChapter = {};
     (chapterRows || []).forEach((c) => {
@@ -1074,6 +1197,7 @@ function FdvTrainerCloud() {
 
     setChapters(orderedChapters);
     setProgress(progressMap);
+    setIsAdmin(!!adminRow);
     setDataLoaded(true);
   }, []);
 
@@ -1154,6 +1278,16 @@ function FdvTrainerCloud() {
   if (!session) {
     return <LoginScreen onLoggedIn={setSession} />;
   }
+  if (session.user.user_metadata && session.user.user_metadata.must_change_password) {
+    return (
+      <ForcePasswordChangeScreen
+        onDone={async () => {
+          const { data } = await sb.auth.getSession();
+          setSession(data.session);
+        }}
+      />
+    );
+  }
   if (!dataLoaded) {
     return <div className="fdv-app"><p className="fdv-sub">Fragen werden geladen …</p></div>;
   }
@@ -1167,7 +1301,7 @@ function FdvTrainerCloud() {
       {screen === "home" && (
         <>
           <div className="fdv-header">
-            <h1 className="fdv-title">LernLok</h1>
+            <h1 className="fdv-title">FDV-Trainer</h1>
             <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
           </div>
           <p className="fdv-sub">
@@ -1186,7 +1320,12 @@ function FdvTrainerCloud() {
             </button>
           </div>
 
-          <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
+          )}
 
           <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
@@ -1208,7 +1347,7 @@ function FdvTrainerCloud() {
         </>
       )}
 
-      {screen === "add" && (
+      {screen === "add" && isAdmin && (
         <>
           <div className="fdv-quiz-top">
             <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
@@ -1222,6 +1361,19 @@ function FdvTrainerCloud() {
               await loadData(session.user.id);
               setScreen("home");
             }}
+          />
+        </>
+      )}
+
+      {screen === "adduser" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Neuer Nutzer</span>
+          </div>
+          <AddUserScreen
+            accessToken={session.access_token}
+            onCancel={() => setScreen("home")}
           />
         </>
       )}
