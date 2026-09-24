@@ -17,647 +17,464 @@
   html, body { margin: 0; padding: 0; background: #f2f3f3; }
   #root { min-height: 100vh; }
 
-  .fdv-app {
-    --bg: #f2f3f3;
-    --panel: #ffffff;
-    --panel-border: #dcdedd;
-    --panel-alt: #f6f7f7;
-    --text: #231f20;
-    --text-dim: #75767a;
-    --green: #75c93b;
-    --green-dark: #5aa32b;
-    --green-dim: #eaf7de;
-    --red: #d1453f;
-    --red-dim: #fbebea;
-    --amber: #c98a2b;
-    --amber-dim: #f7ecdb;
-    --grey: #888687;
-    --grey-dark: #58585a;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 20px 16px 40px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-  .fdv-app * { box-sizing: border-box; }
+        .fdv-app {
+          --bg: #f2f3f3;
+          --panel: #ffffff;
+          --panel-border: #dcdedd;
+          --panel-alt: #f6f7f7;
+          --text: #231f20;
+          --text-dim: #75767a;
+          --green: #75c93b;
+          --green-dark: #5aa32b;
+          --green-dim: #eaf7de;
+          --red: #d1453f;
+          --red-dim: #fbebea;
+          --amber: #c98a2b;
+          --amber-dim: #f7ecdb;
+          --grey: #888687;
+          --grey-dark: #58585a;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 20px 16px 40px;
+          max-width: 640px;
+          margin: 0 auto;
+        }
+        .fdv-app * { box-sizing: border-box; }
+        .fdv-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+        .fdv-title {
+          font-size: 22px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .fdv-sub {
+          color: var(--text-dim);
+          font-size: 13px;
+          margin: 2px 0 20px;
+        }
+        .fdv-railline {
+          height: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            var(--panel-border) 0px,
+            var(--panel-border) 10px,
+            transparent 10px,
+            transparent 16px
+          );
+          margin-bottom: 20px;
+          border-radius: 2px;
+        }
+        .fdv-training-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+        .fdv-training-btn {
+          flex: 1;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 14px 12px;
+          color: var(--text);
+          text-align: left;
+          cursor: pointer;
+          font-size: 13px;
+          transition: border-color 0.15s ease, transform 0.1s ease;
+        }
+        .fdv-training-btn:active { transform: scale(0.98); }
+        .fdv-training-btn:hover { border-color: var(--green); }
+        .fdv-training-btn.disabled {
+          opacity: 0.45;
+          cursor: default;
+          pointer-events: none;
+        }
+        .fdv-training-btn .label {
+          display: block;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
+        .fdv-training-btn .meta {
+          color: var(--text-dim);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .fdv-section-label {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+          margin: 24px 0 8px;
+        }
+        .fdv-chapter-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          background: var(--panel-border);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .fdv-chapter-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel);
+          padding: 13px 14px;
+          cursor: pointer;
+          border: none;
+          width: 100%;
+          text-align: left;
+          color: var(--text);
+          font-size: 14px;
+        }
+        .fdv-chapter-row:hover { background: var(--panel-alt); }
+        .fdv-chapter-code {
+          font-variant-numeric: tabular-nums;
+          font-weight: 700;
+          font-size: 13px;
+          color: var(--text-dim);
+          width: 46px;
+          flex-shrink: 0;
+        }
+        .fdv-chapter-title {
+          flex: 1;
+          font-size: 14px;
+        }
+        .fdv-mastery {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-text {
+          font-size: 11px;
+          color: var(--text-dim);
+          font-variant-numeric: tabular-nums;
+          min-width: 34px;
+          text-align: right;
+        }
+        /* Quiz screen */
+        .fdv-quiz-top {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .fdv-back-btn {
+          background: none;
+          border: 1px solid var(--panel-border);
+          color: var(--text-dim);
+          border-radius: 5px;
+          padding: 6px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .fdv-quiz-title {
+          font-size: 13px;
+          color: var(--text-dim);
+          flex: 1;
+        }
+        .fdv-progress-track {
+          display: flex;
+          gap: 3px;
+          margin-bottom: 18px;
+        }
+        .fdv-progress-tick {
+          height: 4px;
+          flex: 1;
+          border-radius: 2px;
+          background: var(--panel-border);
+        }
+        .fdv-progress-tick.current { background: var(--grey-dark); }
+        .fdv-progress-tick.correct { background: var(--green); }
+        .fdv-progress-tick.wrong { background: var(--red); }
+        .fdv-card {
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 20px 18px;
+        }
+        .fdv-type-tag {
+          display: inline-block;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--grey-dark);
+          border: 1px solid var(--grey);
+          border-radius: 10px;
+          padding: 2px 8px;
+          margin-bottom: 10px;
+        }
+        .fdv-question-image {
+          display: block;
+          width: auto;
+          max-width: 45%;
+          max-height: 120px;
+          object-fit: contain;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          margin: 0 auto 14px;
+        }
+        .fdv-question {
+          font-size: 17px;
+          font-weight: 600;
+          line-height: 1.4;
+          margin: 0 0 18px;
+        }
+        .fdv-options {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .fdv-options-row {
+          flex-direction: row;
+        }
+        .fdv-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+          color: var(--text);
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          line-height: 1.35;
+        }
+        .fdv-option-tf { flex: 1; justify-content: center; }
+        .fdv-option:hover:not(.locked) { border-color: var(--grey); }
+        .fdv-option.picked { border-color: var(--grey-dark); }
+        .fdv-option.locked { cursor: default; }
+        .fdv-option.correct-answer {
+          border-color: var(--green);
+          background: var(--green-dim);
+        }
+        .fdv-option.wrong-answer {
+          border-color: var(--red);
+          background: var(--red-dim);
+        }
+        .fdv-option-light {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+        }
+        .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
+        .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
+        .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-checkbox-box {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          color: #ffffff;
+        }
+        .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
+        .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
+        /* TFM table */
+        .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
+        .fdv-tfm-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
+        .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
+        .fdv-tfm-pill {
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+          border-radius: 5px;
+          padding: 7px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
+        .fdv-tfm-pill.locked { cursor: default; }
+        .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+        .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+        /* Matching */
+        .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
+        .fdv-matching-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
+        .fdv-matching-select {
+          flex: 1;
+          min-width: 140px;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--panel-border);
+          border-radius: 5px;
+          padding: 8px 8px;
+          font-size: 13px;
+        }
+        .fdv-matching-select.correct-answer { border-color: var(--green); }
+        .fdv-matching-select.wrong-answer { border-color: var(--red); }
+        .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
+        .fdv-check-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--panel-border);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
+        .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
+        .fdv-explanation {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid var(--panel-border);
+          font-size: 13px;
+          color: var(--text-dim);
+          line-height: 1.5;
+        }
+        .fdv-explanation strong { color: var(--text); }
+        .fdv-next-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--green);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-next-btn:hover { filter: brightness(1.08); }
+        /* Result screen */
+        .fdv-result-score {
+          font-size: 44px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          margin: 6px 0 2px;
+        }
+        .fdv-result-sub {
+          color: var(--text-dim);
+          font-size: 14px;
+          margin-bottom: 24px;
+        }
+        .fdv-result-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .fdv-result-btn {
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+        }
+        .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
+        .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
+              /* Login + form additions */
+        .fdv-login-wrap {
+          max-width: 380px;
+          margin: 60px auto 0;
+        }
+        .fdv-login-card {
+          margin-top: 16px;
+        }
+        .fdv-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-dim);
+          margin: 14px 0 5px;
+        }
+        .fdv-label:first-child { margin-top: 0; }
+        .fdv-input {
+          width: 100%;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 11px;
+          font-size: 14px;
+          color: var(--text);
+          font-family: inherit;
+        }
+        .fdv-input-narrow { width: auto; flex-shrink: 0; }
+        .fdv-form-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .fdv-form-row .fdv-input { flex: 1; }
+        .fdv-form-error {
+          color: var(--red);
+          font-size: 13px;
+          margin-top: 10px;
+        }
+        .fdv-form-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
+        .fdv-add-btn {
+          width: 100%;
+          background: var(--panel);
+          border: 1px dashed var(--grey);
+          border-radius: 6px;
+          padding: 12px;
+          color: var(--grey-dark);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 22px;
+        }
+        .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
 
-  .fdv-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-  .fdv-title {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0;
-    color: var(--text);
-  }
-  .fdv-sub {
-    color: var(--text-dim);
-    font-size: 13px;
-    margin: 2px 0 16px;
-  }
-  .fdv-railline {
-    height: 3px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--panel-border) 0px,
-      var(--panel-border) 10px,
-      transparent 10px,
-      transparent 16px
-    );
-    margin-bottom: 18px;
-    border-radius: 2px;
-  }
-
-  /* Progress Dashboard Card */
-  .fdv-dashboard-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 18px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    display: flex;
-    align-items: center;
-    gap: 18px;
-  }
-  .fdv-ring-wrap {
-    position: relative;
-    width: 86px;
-    height: 86px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .fdv-ring-svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
-  .fdv-ring-bg {
-    fill: none;
-    stroke: var(--panel-border);
-    stroke-width: 7;
-  }
-  .fdv-ring-fill {
-    fill: none;
-    stroke: var(--green);
-    stroke-width: 7;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.8s ease-in-out;
-  }
-  .fdv-ring-text {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-  .fdv-ring-pct {
-    font-size: 20px;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--text);
-  }
-  .fdv-ring-sub {
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-dim);
-    margin-top: 2px;
-    font-weight: 600;
-  }
-  .fdv-dashboard-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .fdv-dashboard-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-  }
-  .fdv-stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-  }
-  .fdv-stat-label { color: var(--text-dim); }
-  .fdv-stat-val { font-weight: 700; font-variant-numeric: tabular-nums; }
-  
-  .fdv-mini-bar-bg {
-    height: 6px;
-    background: var(--panel-border);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 2px;
-    width: 100%;
-  }
-  .fdv-mini-bar-fill {
-    height: 100%;
-    background: var(--green);
-    border-radius: 3px;
-    transition: width 0.5s ease-out;
-  }
-
-  .fdv-training-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 22px;
-  }
-  .fdv-training-btn {
-    flex: 1;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 14px 12px;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    font-size: 13px;
-    transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  }
-  .fdv-training-btn:active { transform: scale(0.98); }
-  .fdv-training-btn:hover { border-color: var(--green); box-shadow: 0 2px 8px rgba(117,201,59,0.15); }
-  .fdv-training-btn.disabled {
-    opacity: 0.45;
-    cursor: default;
-    pointer-events: none;
-  }
-  .fdv-training-btn .label {
-    display: block;
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 3px;
-  }
-  .fdv-training-btn .meta {
-    color: var(--text-dim);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .fdv-section-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    margin: 24px 0 10px;
-    font-weight: 700;
-  }
-  .fdv-chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .fdv-chapter-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    cursor: pointer;
-    text-align: left;
-    color: var(--text);
-    font-size: 14px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .fdv-chapter-card:hover {
-    border-color: var(--grey-dark);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    transform: translateY(-1px);
-  }
-  .fdv-topic-accent-strip {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 5px;
-  }
-  .fdv-chapter-code {
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
-    font-size: 13px;
-    color: var(--text-dim);
-    width: 48px;
-    flex-shrink: 0;
-    padding-left: 4px;
-  }
-  .fdv-chapter-center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-  }
-  .fdv-chapter-title {
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .fdv-topic-badge {
-    display: inline-block;
-    align-self: flex-start;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-  .fdv-mastery {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    flex-shrink: 0;
-  }
-  .fdv-mastery-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .fdv-mastery-text {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-dim);
-    font-variant-numeric: tabular-nums;
-    min-width: 36px;
-    text-align: right;
-  }
-
-  /* Quiz screen */
-  .fdv-quiz-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .fdv-back-btn {
-    background: none;
-    border: 1px solid var(--panel-border);
-    color: var(--text-dim);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.15s ease;
-  }
-  .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
-  .fdv-quiz-title {
-    font-size: 13px;
-    color: var(--text-dim);
-    flex: 1;
-    font-weight: 600;
-  }
-  .fdv-progress-track {
-    display: flex;
-    gap: 3px;
-    margin-bottom: 18px;
-  }
-  .fdv-progress-tick {
-    height: 5px;
-    flex: 1;
-    border-radius: 3px;
-    background: var(--panel-border);
-    transition: background-color 0.3s ease;
-  }
-  .fdv-progress-tick.current { background: var(--grey-dark); }
-  .fdv-progress-tick.correct { background: var(--green); }
-  .fdv-progress-tick.wrong { background: var(--red); }
-
-  .fdv-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 22px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  }
-  .fdv-type-tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--grey-dark);
-    border: 1px solid var(--panel-border);
-    background: var(--panel-alt);
-    border-radius: 10px;
-    padding: 3px 9px;
-    margin-bottom: 12px;
-  }
-  .fdv-question-image {
-    display: block;
-    width: auto;
-    max-width: 55%;
-    max-height: 140px;
-    object-fit: contain;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    margin: 0 auto 16px;
-  }
-  .fdv-question {
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.45;
-    margin: 0 0 20px;
-  }
-
-  .fdv-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .fdv-options-row {
-    flex-direction: row;
-  }
-  .fdv-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 13px 15px;
-    color: var(--text);
-    font-size: 14px;
-    text-align: left;
-    cursor: pointer;
-    line-height: 1.4;
-    transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.1s ease, box-shadow 0.2s ease;
-  }
-  .fdv-option-tf { flex: 1; justify-content: center; }
-  .fdv-option:hover:not(.locked) { border-color: var(--grey); background: #ffffff; }
-  .fdv-option.picked { border-color: var(--grey-dark); background: #ffffff; font-weight: 600; }
-  .fdv-option.locked { cursor: default; }
-  .fdv-option.correct-answer {
-    border-color: var(--green);
-    background: var(--green-dim);
-    font-weight: 600;
-  }
-  .fdv-option.wrong-answer {
-    border-color: var(--red);
-    background: var(--red-dim);
-    font-weight: 600;
-  }
-  .fdv-option-light {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--panel-border);
-    flex-shrink: 0;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-  .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
-  .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
-  .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
-  .fdv-checkbox-box {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    border: 2px solid var(--panel-border);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #ffffff;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-  .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
-  .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
-  .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
-
-  /* TFM table */
-  .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
-  .fdv-tfm-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 10px 12px;
-  }
-  .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
-  .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
-  .fdv-tfm-pill {
-    border: 1px solid var(--panel-border);
-    background: var(--panel);
-    color: var(--text);
-    border-radius: 6px;
-    padding: 7px 11px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .fdv-tfm-pill.picked { border-color: var(--grey-dark); background: var(--grey-dark); color: #ffffff; }
-  .fdv-tfm-pill.locked { cursor: default; }
-  .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green-dark); font-weight: 700; }
-  .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); font-weight: 700; }
-
-  /* Matching */
-  .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
-  .fdv-matching-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 10px 12px;
-  }
-  .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
-  .fdv-matching-select {
-    flex: 1;
-    min-width: 140px;
-    background: var(--panel);
-    color: var(--text);
-    border: 1px solid var(--panel-border);
-    border-radius: 6px;
-    padding: 8px 8px;
-    font-size: 13px;
-    transition: border-color 0.2s ease;
-  }
-  .fdv-matching-select.correct-answer { border-color: var(--green); background: var(--green-dim); }
-  .fdv-matching-select.wrong-answer { border-color: var(--red); background: var(--red-dim); }
-  .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green-dark); font-weight: 600; }
-
-  .fdv-check-btn {
-    margin-top: 20px;
-    width: 100%;
-    background: var(--panel-border);
-    color: var(--text-dim);
-    border: none;
-    border-radius: 8px;
-    padding: 13px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
-  .fdv-check-btn.enabled:hover { filter: brightness(1.06); }
-  .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
-
-  /* Smooth fade & slide transition on answer reveal */
-  @keyframes fadeInSlide {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .fdv-reveal-container {
-    animation: fadeInSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .fdv-explanation {
-    margin-top: 18px;
-    padding: 14px 16px;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 8px;
-    font-size: 13.5px;
-    color: var(--text);
-    line-height: 1.5;
-  }
-  .fdv-explanation strong { color: var(--text); }
-  .fdv-explanation.is-correct { border-left: 4px solid var(--green); }
-  .fdv-explanation.is-wrong { border-left: 4px solid var(--red); }
-
-  .fdv-next-btn {
-    margin-top: 18px;
-    width: 100%;
-    background: var(--green);
-    color: var(--text);
-    border: none;
-    border-radius: 8px;
-    padding: 13px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: filter 0.15s ease, transform 0.1s ease;
-  }
-  .fdv-next-btn:active { transform: scale(0.99); }
-  .fdv-next-btn:hover { filter: brightness(1.08); }
-
-  /* Result screen */
-  .fdv-result-score {
-    font-size: 48px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    margin: 8px 0 2px;
-  }
-  .fdv-result-sub {
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-bottom: 24px;
-  }
-  .fdv-result-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .fdv-result-btn {
-    border-radius: 8px;
-    padding: 13px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid var(--panel-border);
-    background: var(--panel);
-    color: var(--text);
-    transition: all 0.15s ease;
-  }
-  .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
-  .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
-
-  /* Login + form additions */
-  .fdv-login-wrap {
-    max-width: 380px;
-    margin: 60px auto 0;
-  }
-  .fdv-login-card {
-    margin-top: 16px;
-  }
-  .fdv-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-dim);
-    margin: 14px 0 5px;
-  }
-  .fdv-label:first-child { margin-top: 0; }
-  .fdv-input {
-    width: 100%;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 6px;
-    padding: 10px 11px;
-    font-size: 14px;
-    color: var(--text);
-    font-family: inherit;
-  }
-  .fdv-input-narrow { width: auto; flex-shrink: 0; }
-  .fdv-form-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .fdv-form-row .fdv-input { flex: 1; }
-  .fdv-form-error {
-    color: var(--red);
-    font-size: 13px;
-    margin-top: 10px;
-  }
-  .fdv-form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-  }
-  .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
-  .fdv-add-btn {
-    width: 100%;
-    background: var(--panel);
-    border: 1px dashed var(--grey);
-    border-radius: 8px;
-    padding: 12px;
-    color: var(--grey-dark);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: all 0.15s ease;
-  }
-  .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
 </style>
 </head>
 <body>
@@ -694,26 +511,6 @@ const TYPE_LABEL = {
   tfm: "Wahr/Falsch-Matrix",
   matching: "Zuordnung",
 };
-
-// Map chapter topic or title to color themes for quicker visual orientation
-function getChapterTopic(chapter) {
-  const code = (chapter.code || "").toLowerCase();
-  const title = (chapter.title || "").toLowerCase();
-
-  if (title.includes("brems") || code.includes("br") || code.startsWith("3")) {
-    return { name: "Bremsen", color: "#10b981", bg: "#e6f4ea", border: "#34a853" };
-  }
-  if (title.includes("signal") || code.includes("sig") || code.startsWith("2")) {
-    return { name: "Signale", color: "#e67e22", bg: "#fef5e7", border: "#f39c12" };
-  }
-  if (title.includes("fahr") || title.includes("zug") || title.includes("rangier") || code.startsWith("4")) {
-    return { name: "Fahrordnung", color: "#3b82f6", bg: "#e8f0fe", border: "#4285f4" };
-  }
-  if (title.includes("stör") || title.includes("gefahr") || title.includes("sicher") || code.startsWith("5")) {
-    return { name: "Störungen", color: "#ef4444", bg: "#fce8e6", border: "#ea4335" };
-  }
-  return { name: "Grundlagen", color: "#8b5cf6", bg: "#f3e8ff", border: "#a855f7" };
-}
 
 function shuffledCopy(arr) {
   const a = [...arr];
@@ -765,13 +562,14 @@ function chapterStats(chapter, progress) {
 
 function masteryColor(stats) {
   if (stats.attempted === 0) return "var(--grey)";
-  const ratio = stats.correct / stats.total;
+  const ratio = stats.correct / stats.attempted;
   if (stats.attempted < stats.total) return "var(--amber)";
   if (ratio >= 0.8) return "var(--green)";
   if (ratio >= 0.5) return "var(--amber)";
   return "var(--red)";
 }
 
+// row from Supabase `questions` table -> app-shaped question object
 function rowToQuestion(row) {
   const base = {
     id: row.id,
@@ -783,6 +581,7 @@ function rowToQuestion(row) {
   return { ...base, ...row.payload };
 }
 
+// ---- draft helpers ----
 function initDraft(q) {
   if (q.type === "sc") return { selected: null };
   if (q.type === "tf") return { selected: null };
@@ -791,7 +590,6 @@ function initDraft(q) {
   if (q.type === "matching") return { assign: q.pairs.map(() => null), pool: shuffledCopy(q.pairs.map((p) => p.right)) };
   return {};
 }
-
 function isDraftComplete(q, draft) {
   if (q.type === "sc" || q.type === "tf") return draft.selected !== null;
   if (q.type === "ms") return draft.selectedSet.length > 0;
@@ -799,7 +597,6 @@ function isDraftComplete(q, draft) {
   if (q.type === "matching") return draft.assign.every((a) => a !== null);
   return false;
 }
-
 function isDraftCorrect(q, draft) {
   if (q.type === "sc") return draft.selected === q.correctIndex;
   if (q.type === "tf") return draft.selected === q.correct;
@@ -813,56 +610,7 @@ function isDraftCorrect(q, draft) {
   return false;
 }
 
-// Progress Dashboard Ring Component
-function OverallProgressRing({ correctCount, totalQuestions, attemptedCount, wrongCount }) {
-  const pct = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-  const radius = 34;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (pct / 100) * circumference;
-
-  return (
-    <div className="fdv-dashboard-card">
-      <div className="fdv-ring-wrap">
-        <svg className="fdv-ring-svg" viewBox="0 0 86 86">
-          <circle className="fdv-ring-bg" cx="43" cy="43" r={radius} />
-          <circle
-            className="fdv-ring-fill"
-            cx="43"
-            cy="43"
-            r={radius}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-          />
-        </svg>
-        <div className="fdv-ring-text">
-          <span className="fdv-ring-pct">{pct}%</span>
-          <span className="fdv-ring-sub">Gemeistert</span>
-        </div>
-      </div>
-      <div className="fdv-dashboard-details">
-        <div className="fdv-dashboard-title">Gesamtfortschritt</div>
-        <div className="fdv-stat-row">
-          <span className="fdv-stat-label">Richtig gemeistert:</span>
-          <span className="fdv-stat-val" style={{ color: "var(--green-dark)" }}>{correctCount} / {totalQuestions}</span>
-        </div>
-        <div className="fdv-stat-row">
-          <span className="fdv-stat-label">Geübt:</span>
-          <span className="fdv-stat-val">{attemptedCount} Fragen</span>
-        </div>
-        {wrongCount > 0 && (
-          <div className="fdv-stat-row">
-            <span className="fdv-stat-label">Offene Fehler:</span>
-            <span className="fdv-stat-val" style={{ color: "var(--red)" }}>{wrongCount}</span>
-          </div>
-        )}
-        <div className="fdv-mini-bar-bg">
-          <div className="fdv-mini-bar-fill" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// ---- per-type interactive renderers ----
 function ScQuestion({ q, draft, setDraft, revealed }) {
   return (
     <div className="fdv-options">
@@ -883,7 +631,6 @@ function ScQuestion({ q, draft, setDraft, revealed }) {
     </div>
   );
 }
-
 function TfQuestion({ q, draft, setDraft, revealed }) {
   const options = [{ label: "Wahr", value: true }, { label: "Falsch", value: false }];
   return (
@@ -905,7 +652,6 @@ function TfQuestion({ q, draft, setDraft, revealed }) {
     </div>
   );
 }
-
 function MsQuestion({ q, draft, setDraft, revealed }) {
   function toggle(idx) {
     if (revealed) return;
@@ -933,7 +679,6 @@ function MsQuestion({ q, draft, setDraft, revealed }) {
     </div>
   );
 }
-
 function TfmQuestion({ q, draft, setDraft, revealed }) {
   function setRow(i, val) {
     if (revealed) return;
@@ -966,7 +711,6 @@ function TfmQuestion({ q, draft, setDraft, revealed }) {
     </div>
   );
 }
-
 function MatchingQuestion({ q, draft, setDraft, revealed }) {
   function setAssign(i, value) {
     if (revealed) return;
@@ -1001,7 +745,6 @@ function MatchingQuestion({ q, draft, setDraft, revealed }) {
     </div>
   );
 }
-
 function QuestionBody({ q, draft, setDraft, revealed }) {
   if (q.type === "sc") return <ScQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
   if (q.type === "tf") return <TfQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
@@ -1011,6 +754,7 @@ function QuestionBody({ q, draft, setDraft, revealed }) {
   return null;
 }
 
+// ---- Forced password change screen (shown after first login with a temp password) ----
 function ForcePasswordChangeScreen({ onDone }) {
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
@@ -1061,6 +805,7 @@ function ForcePasswordChangeScreen({ onDone }) {
   );
 }
 
+// ---- Admin screen: create a new user with a temporary password ----
 function AddUserScreen({ accessToken, onCancel }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1121,6 +866,7 @@ function AddUserScreen({ accessToken, onCancel }) {
   );
 }
 
+// ---- Login screen ----
 function LoginScreen({ onLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1155,14 +901,15 @@ function LoginScreen({ onLoggedIn }) {
             {busy ? "Einloggen …" : "Einloggen"}
           </button>
         </form>
-        <p className="fdv-sub" style={{ marginTop: 16, textAlign: "center" }}>
-          Noch keinen Zugang? Frag deinen Administrator.
+        <p className="fdv-sub" style={{ marginTop: 16 }}>
+          Noch keinen Zugang? Frag die Person, die diese App verwaltet, um ein Konto.
         </p>
       </div>
     </div>
   );
 }
 
+// ---- Add-question form ----
 function emptyFormForType(type) {
   if (type === "sc") return { options: ["", "", "", ""], correctIndex: 0 };
   if (type === "ms") return { options: ["", "", "", ""], correctFlags: [false, false, false, false] };
@@ -1402,6 +1149,7 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
   );
 }
 
+// ---- Main app ----
 function FdvTrainerCloud() {
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -1410,7 +1158,7 @@ function FdvTrainerCloud() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [screen, setScreen] = useState("home");
-  const [session_, setSessionQuiz] = useState(null);
+  const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -1465,7 +1213,6 @@ function FdvTrainerCloud() {
     [allQuestions, progress]
   );
   const totalAttempted = useMemo(() => allQuestions.filter((q) => progress[q.id]).length, [allQuestions, progress]);
-  const totalCorrect = useMemo(() => allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === true).length, [allQuestions, progress]);
 
   function loadQuestion(q) {
     setDraft(initDraft(q));
@@ -1511,14 +1258,12 @@ function FdvTrainerCloud() {
       loadQuestion(session_.questions[nextIndex]);
     }
   }
-
   function goHome() {
     setSessionQuiz(null);
     setDraft(null);
     setRevealed(false);
     setScreen("home");
   }
-
   async function logout() {
     await sb.auth.signOut();
     setSession(null);
@@ -1559,16 +1304,10 @@ function FdvTrainerCloud() {
             <h1 className="fdv-title">FDV-Trainer</h1>
             <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
           </div>
-          <p className="fdv-sub">{session.user.email}</p>
+          <p className="fdv-sub">
+            {session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt
+          </p>
           <div className="fdv-railline" />
-
-          {/* New Progress Overview Header Card */}
-          <OverallProgressRing
-            correctCount={totalCorrect}
-            totalQuestions={allQuestions.length}
-            attemptedCount={totalAttempted}
-            wrongCount={wrongCount}
-          />
 
           <div className="fdv-training-row">
             <button className="fdv-training-btn" onClick={startMixed}>
@@ -1588,25 +1327,15 @@ function FdvTrainerCloud() {
             <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
           )}
 
-          <div className="fdv-section-label">Kapitel nach Themenbereich</div>
+          <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
             {chapters.map((chapter) => {
               const stats = chapterStats(chapter, progress);
               const color = masteryColor(stats);
-              const topic = getChapterTopic(chapter);
               return (
-                <button key={chapter.code} className="fdv-chapter-card" onClick={() => startChapter(chapter)}>
-                  <div className="fdv-topic-accent-strip" style={{ background: topic.color }} />
+                <button key={chapter.code} className="fdv-chapter-row" onClick={() => startChapter(chapter)}>
                   <span className="fdv-chapter-code">{chapter.code}</span>
-                  <div className="fdv-chapter-center">
-                    <span className="fdv-chapter-title">{chapter.title}</span>
-                    <span
-                      className="fdv-topic-badge"
-                      style={{ background: topic.bg, color: topic.color, border: `1px solid ${topic.border}` }}
-                    >
-                      {topic.name}
-                    </span>
-                  </div>
+                  <span className="fdv-chapter-title">{chapter.title}</span>
                   <span className="fdv-mastery">
                     <span className="fdv-mastery-dot" style={{ background: color }} />
                     <span className="fdv-mastery-text">{stats.attempted}/{stats.total}</span>
@@ -1693,18 +1422,17 @@ function FdvTrainerCloud() {
                 <button className="fdv-check-btn enabled" onClick={check}>Prüfen</button>
               )}
 
-              {/* Animated reveal block when checking answer */}
               {revealed && (
-                <div className="fdv-reveal-container">
+                <>
                   {currentQ.explanation && (
-                    <div className={"fdv-explanation " + (isDraftCorrect(currentQ, draft) ? "is-correct" : "is-wrong")}>
+                    <div className="fdv-explanation">
                       <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
                     </div>
                   )}
                   <button className="fdv-next-btn" onClick={next}>
                     {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
                   </button>
-                </div>
+                </>
               )}
             </div>
           )}
@@ -1712,7 +1440,7 @@ function FdvTrainerCloud() {
       )}
 
       {screen === "result" && session_ && (
-        <div className="fdv-card" style={{ textAlign: "center", marginTop: 20 }}>
+        <div className="fdv-card" style={{ textAlign: "center", marginTop: 40 }}>
           <div className="fdv-quiz-title" style={{ textAlign: "center" }}>{session_.title}</div>
           <div
             className="fdv-result-score"
@@ -1743,6 +1471,7 @@ function FdvTrainerCloud() {
 
 const rootEl = document.getElementById("root");
 ReactDOM.createRoot(rootEl).render(<FdvTrainerCloud />);
+
 </script>
 </body>
 </html>
