@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FDV-Trainer</title>
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#75c93b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="FDV-Trainer" />
+<meta name="mobile-web-app-capable" content="yes" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f2f3f3; }
+  #root { min-height: 100vh; }
+
+        .fdv-app {
+          --bg: #f2f3f3;
+          --panel: #ffffff;
+          --panel-border: #dcdedd;
+          --panel-alt: #f6f7f7;
+          --text: #231f20;
+          --text-dim: #75767a;
+          --green: #75c93b;
+          --green-dark: #5aa32b;
+          --green-dim: #eaf7de;
+          --red: #d1453f;
+          --red-dim: #fbebea;
+          --amber: #c98a2b;
+          --amber-dim: #f7ecdb;
+          --grey: #888687;
+          --grey-dark: #58585a;
+          --cat-grundlagen: #8a94a3;
+          --cat-betrieb: #75c93b;
+          --cat-sicherheit: #d1922f;
+          --cat-lokfuehrer: #3f8f8a;
+          --cat-railcare: #9b7fc4;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 20px 16px 40px;
+          max-width: 640px;
+          margin: 0 auto;
+        }
+        .fdv-app * { box-sizing: border-box; }
+        .fdv-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+        .fdv-title {
+          font-size: 22px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .fdv-sub {
+          color: var(--text-dim);
+          font-size: 13px;
+          margin: 2px 0 20px;
+        }
+        .fdv-sub-email { margin-bottom: 14px; }
+        .fdv-progress-card {
+          display: flex;
+          align-items: center;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 14px 16px;
+          margin-bottom: 20px;
+        }
+        .fdv-ring-wrap { display: flex; align-items: center; gap: 14px; }
+        .fdv-ring-label-main { font-size: 16px; font-weight: 700; color: var(--text); }
+        .fdv-ring-label-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+        .fdv-railline {
+          height: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            var(--panel-border) 0px,
+            var(--panel-border) 10px,
+            transparent 10px,
+            transparent 16px
+          );
+          margin-bottom: 20px;
+          border-radius: 2px;
+        }
+        .fdv-training-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+        .fdv-training-btn {
+          flex: 1;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 14px 12px;
+          color: var(--text);
+          text-align: left;
+          cursor: pointer;
+          font-size: 13px;
+          transition: border-color 0.15s ease, transform 0.1s ease;
+        }
+        .fdv-training-btn:active { transform: scale(0.98); }
+        .fdv-training-btn:hover { border-color: var(--green); }
+        .fdv-training-btn.disabled {
+          opacity: 0.45;
+          cursor: default;
+          pointer-events: none;
+        }
+        .fdv-training-btn .label {
+          display: block;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
+        .fdv-training-btn .meta {
+          color: var(--text-dim);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .fdv-section-label {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+          margin: 24px 0 8px;
+        }
+        .fdv-chapter-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          background: var(--panel-border);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .fdv-chapter-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel);
+          padding: 13px 14px;
+          cursor: pointer;
+          border: none;
+          width: 100%;
+          text-align: left;
+          color: var(--text);
+          font-size: 14px;
+        }
+        .fdv-chapter-row:hover { background: var(--panel-alt); }
+        .fdv-chapter-code {
+          font-variant-numeric: tabular-nums;
+          font-weight: 700;
+          font-size: 13px;
+          color: var(--text-dim);
+          width: 46px;
+          flex-shrink: 0;
+        }
+        .fdv-chapter-title {
+          flex: 1;
+          font-size: 14px;
+        }
+        .fdv-mastery {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-text {
+          font-size: 11px;
+          color: var(--text-dim);
+          font-variant-numeric: tabular-nums;
+          min-width: 34px;
+          text-align: right;
+        }
+        /* Quiz screen */
+        .fdv-quiz-top {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .fdv-back-btn {
+          background: none;
+          border: 1px solid var(--panel-border);
+          color: var(--text-dim);
+          border-radius: 5px;
+          padding: 6px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .fdv-quiz-title {
+          font-size: 13px;
+          color: var(--text-dim);
+          flex: 1;
+        }
+        .fdv-progress-track {
+          display: flex;
+          gap: 3px;
+          margin-bottom: 18px;
+        }
+        .fdv-progress-tick {
+          height: 4px;
+          flex: 1;
+          border-radius: 2px;
+          background: var(--panel-border);
+        }
+        .fdv-progress-tick.current { background: var(--grey-dark); }
+        .fdv-progress-tick.correct { background: var(--green); }
+        .fdv-progress-tick.wrong { background: var(--red); }
+        .fdv-card {
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 20px 18px;
+        }
+        .fdv-type-tag {
+          display: inline-block;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--grey-dark);
+          border: 1px solid var(--grey);
+          border-radius: 10px;
+          padding: 2px 8px;
+          margin-bottom: 10px;
+        }
+        .fdv-question-image {
+          display: block;
+          width: auto;
+          max-width: 45%;
+          max-height: 120px;
+          object-fit: contain;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          margin: 0 auto 14px;
+        }
+        .fdv-question {
+          font-size: 17px;
+          font-weight: 600;
+          line-height: 1.4;
+          margin: 0 0 18px;
+        }
+        .fdv-options {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .fdv-options-row {
+          flex-direction: row;
+        }
+        .fdv-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+          color: var(--text);
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          line-height: 1.35;
+          transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+        }
+        .fdv-option:active:not(.locked) { transform: scale(0.99); }
+        .fdv-option-tf { flex: 1; justify-content: center; }
+        .fdv-option:hover:not(.locked) { border-color: var(--grey); }
+        .fdv-option.picked { border-color: var(--grey-dark); }
+        .fdv-option.locked { cursor: default; }
+        .fdv-option.correct-answer {
+          border-color: var(--green);
+          background: var(--green-dim);
+        }
+        .fdv-option.wrong-answer {
+          border-color: var(--red);
+          background: var(--red-dim);
+        }
+        .fdv-option-light {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+        }
+        .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
+        .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
+        .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-checkbox-box {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          color: #ffffff;
+        }
+        .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
+        .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
+        /* TFM table */
+        .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
+        .fdv-tfm-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
+        .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
+        .fdv-tfm-pill {
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+          border-radius: 5px;
+          padding: 7px 10px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+        .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
+        .fdv-tfm-pill.locked { cursor: default; }
+        .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+        .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+        /* Matching */
+        .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
+        .fdv-matching-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
+        .fdv-matching-select {
+          flex: 1;
+          min-width: 140px;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--panel-border);
+          border-radius: 5px;
+          padding: 8px 8px;
+          transition: border-color 0.2s ease;
+          font-size: 13px;
+        }
+        .fdv-matching-select.correct-answer { border-color: var(--green); }
+        .fdv-matching-select.wrong-answer { border-color: var(--red); }
+        .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
+        .fdv-check-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--panel-border);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
+        .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
+        .fdv-explanation {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid var(--panel-border);
+          font-size: 13px;
+          color: var(--text-dim);
+          line-height: 1.5;
+          animation: fdvFadeIn 0.3s ease;
+        }
+        @keyframes fdvFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: none; }
+        }
+        .fdv-next-btn { animation: fdvFadeIn 0.3s ease; }
+        .fdv-explanation strong { color: var(--text); }
+        .fdv-next-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--green);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-next-btn:hover { filter: brightness(1.08); }
+        /* Result screen */
+        .fdv-result-score {
+          font-size: 44px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          margin: 6px 0 2px;
+        }
+        .fdv-result-sub {
+          color: var(--text-dim);
+          font-size: 14px;
+          margin-bottom: 24px;
+        }
+        .fdv-result-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .fdv-result-btn {
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+        }
+        .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
+        .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
+              /* Login + form additions */
+        .fdv-login-wrap {
+          max-width: 380px;
+          margin: 60px auto 0;
+        }
+        .fdv-login-card {
+          margin-top: 16px;
+        }
+        .fdv-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-dim);
+          margin: 14px 0 5px;
+        }
+        .fdv-label:first-child { margin-top: 0; }
+        .fdv-input {
+          width: 100%;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 11px;
+          font-size: 14px;
+          color: var(--text);
+          font-family: inherit;
+        }
+        .fdv-input-narrow { width: auto; flex-shrink: 0; }
+        .fdv-form-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .fdv-form-row .fdv-input { flex: 1; }
+        .fdv-form-error {
+          color: var(--red);
+          font-size: 13px;
+          margin-top: 10px;
+        }
+        .fdv-form-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
+        .fdv-add-btn {
+          width: 100%;
+          background: var(--panel);
+          border: 1px dashed var(--grey);
+          border-radius: 6px;
+          padding: 12px;
+          color: var(--grey-dark);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 22px;
+        }
+        .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  window.sb = createClient(
+    "https://nsidzovmagohzuwvikev.supabase.co",
+    "sb_publishable_Z5H4qhw4pkVjO27eqG9aBQ_0w6RwTyN"
+  );
+</script>
+<script>
+  window.addEventListener('error', function (e) {
+    var root = document.getElementById('root');
+    if (root && !root.hasChildNodes()) {
+      root.innerHTML = '<pre style="padding:20px;color:#c0392b;font-family:monospace;white-space:pre-wrap;">Fehler beim Laden der App:\n' + (e.message || e) + '</pre>';
+    }
+  });
+</script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+const sb = window.sb;
+
+const TYPE_LABEL = {
+  sc: "Single Choice",
+  ms: "Multiple Select",
+  tf: "Wahr / Falsch",
+  tfm: "Wahr/Falsch-Matrix",
+  matching: "Zuordnung",
+};
+
+function shuffledCopy(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffledIndices(n) {
+  return shuffledCopy(Array.from({ length: n }, (_, i) => i));
+}
+
+function randomizeQuestion(q) {
+  if (q.type === "sc") {
+    const order = shuffledIndices(q.options.length);
+    return { ...q, options: order.map((i) => q.options[i]), correctIndex: order.indexOf(q.correctIndex) };
+  }
+  if (q.type === "ms") {
+    const order = shuffledIndices(q.options.length);
+    return {
+      ...q,
+      options: order.map((i) => q.options[i]),
+      correctIndices: q.correctIndices.map((ci) => order.indexOf(ci)),
+    };
+  }
+  if (q.type === "tfm") {
+    return { ...q, statements: shuffledCopy(q.statements) };
+  }
+  if (q.type === "matching") {
+    return { ...q, pairs: shuffledCopy(q.pairs) };
+  }
+  return q;
+}
+
+function chapterStats(chapter, progress) {
+  let attempted = 0;
+  let correct = 0;
+  chapter.questions.forEach((q) => {
+    const p = progress[q.id];
+    if (p) {
+      attempted += 1;
+      if (p.last_correct) correct += 1;
+    }
+  });
+  return { attempted, correct, total: chapter.questions.length };
+}
+
+function masteryColor(stats) {
+  if (stats.attempted === 0) return "var(--grey)";
+  const ratio = stats.correct / stats.attempted;
+  if (stats.attempted < stats.total) return "var(--amber)";
+  if (ratio >= 0.8) return "var(--green)";
+  if (ratio >= 0.5) return "var(--amber)";
+  return "var(--red)";
+}
+
+// Thematic accent per chapter, purely for visual grouping in the chapter list.
+function categoryAccent(code) {
+  const n = parseFloat(code);
+  if (!isNaN(n)) {
+    if (n >= 300.1 && n <= 300.3) return "var(--cat-grundlagen)";
+    if (n >= 300.4 && n <= 300.7) return "var(--cat-betrieb)";
+    if (n >= 300.8 && n <= 300.9) return "var(--cat-sicherheit)";
+    if (n >= 300.13 && n <= 300.14) return "var(--cat-lokfuehrer)";
+  }
+  return "var(--cat-railcare)"; // company-specific chapters (RLC, DS3, HBVG-SG, …)
+}
+
+function overallStats(chapters, progress) {
+  let attempted = 0, correct = 0, total = 0;
+  chapters.forEach((c) => {
+    const s = chapterStats(c, progress);
+    attempted += s.attempted;
+    correct += s.correct;
+    total += s.total;
+  });
+  return { attempted, correct, total };
+}
+
+// Compact circular progress ring shown at the top of the home screen.
+function ProgressRing({ attempted, correct, total }) {
+  const pct = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+  const color =
+    attempted === 0 ? "var(--grey)" :
+    pct >= 80 ? "var(--green)" :
+    pct >= 50 ? "var(--amber)" : "var(--red)";
+  const r = 26, c = 2 * Math.PI * r;
+  const dash = attempted > 0 ? (pct / 100) * c : 0;
+  return (
+    <div className="fdv-ring-wrap">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--panel-border)" strokeWidth="6" />
+        <circle
+          cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
+          strokeDasharray={`${dash} ${c}`} transform="rotate(-90 32 32)"
+          style={{ transition: "stroke-dasharray 0.4s ease" }}
+        />
+        <text x="32" y="37" textAnchor="middle" fontSize="16" fontWeight="700" fill="var(--text)">
+          {attempted > 0 ? pct + "%" : "–"}
+        </text>
+      </svg>
+      <div className="fdv-ring-label">
+        <div className="fdv-ring-label-main">{attempted}/{total}</div>
+        <div className="fdv-ring-label-sub">Fragen geübt</div>
+      </div>
+    </div>
+  );
+}
+
+// row from Supabase `questions` table -> app-shaped question object
+function rowToQuestion(row) {
+  const base = {
+    id: row.id,
+    type: row.type,
+    prompt: row.prompt,
+    explanation: row.explanation || "",
+  };
+  if (row.image) base.image = row.image;
+  return { ...base, ...row.payload };
+}
+
+// ---- draft helpers ----
+function initDraft(q) {
+  if (q.type === "sc") return { selected: null };
+  if (q.type === "tf") return { selected: null };
+  if (q.type === "ms") return { selectedSet: [] };
+  if (q.type === "tfm") return { answers: q.statements.map(() => null) };
+  if (q.type === "matching") return { assign: q.pairs.map(() => null), pool: shuffledCopy(q.pairs.map((p) => p.right)) };
+  return {};
+}
+function isDraftComplete(q, draft) {
+  if (q.type === "sc" || q.type === "tf") return draft.selected !== null;
+  if (q.type === "ms") return draft.selectedSet.length > 0;
+  if (q.type === "tfm") return draft.answers.every((a) => a !== null);
+  if (q.type === "matching") return draft.assign.every((a) => a !== null);
+  return false;
+}
+function isDraftCorrect(q, draft) {
+  if (q.type === "sc") return draft.selected === q.correctIndex;
+  if (q.type === "tf") return draft.selected === q.correct;
+  if (q.type === "ms") {
+    const a = [...draft.selectedSet].sort().join(",");
+    const b = [...q.correctIndices].sort().join(",");
+    return a === b;
+  }
+  if (q.type === "tfm") return q.statements.every((s, i) => draft.answers[i] === s.correct);
+  if (q.type === "matching") return q.pairs.every((p, i) => draft.assign[i] === p.right);
+  return false;
+}
+
+// ---- per-type interactive renderers ----
+function ScQuestion({ q, draft, setDraft, revealed }) {
+  return (
+    <div className="fdv-options">
+      {q.options.map((opt, idx) => {
+        let cls = "fdv-option";
+        if (revealed) {
+          cls += " locked";
+          if (idx === q.correctIndex) cls += " correct-answer";
+          else if (idx === draft.selected) cls += " wrong-answer";
+        } else if (draft.selected === idx) cls += " picked";
+        return (
+          <button key={idx} className={cls} disabled={revealed} onClick={() => setDraft({ selected: idx })}>
+            <span className="fdv-option-light" />
+            <span>{opt}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function TfQuestion({ q, draft, setDraft, revealed }) {
+  const options = [{ label: "Wahr", value: true }, { label: "Falsch", value: false }];
+  return (
+    <div className="fdv-options fdv-options-row">
+      {options.map((opt) => {
+        let cls = "fdv-option fdv-option-tf";
+        if (revealed) {
+          cls += " locked";
+          if (opt.value === q.correct) cls += " correct-answer";
+          else if (opt.value === draft.selected) cls += " wrong-answer";
+        } else if (draft.selected === opt.value) cls += " picked";
+        return (
+          <button key={opt.label} className={cls} disabled={revealed} onClick={() => setDraft({ selected: opt.value })}>
+            <span className="fdv-option-light" />
+            <span>{opt.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function MsQuestion({ q, draft, setDraft, revealed }) {
+  function toggle(idx) {
+    if (revealed) return;
+    const set = draft.selectedSet.includes(idx) ? draft.selectedSet.filter((i) => i !== idx) : [...draft.selectedSet, idx];
+    setDraft({ selectedSet: set });
+  }
+  return (
+    <div className="fdv-options">
+      {q.options.map((opt, idx) => {
+        const picked = draft.selectedSet.includes(idx);
+        const shouldBeCorrect = q.correctIndices.includes(idx);
+        let cls = "fdv-option fdv-option-checkbox";
+        if (revealed) {
+          cls += " locked";
+          if (shouldBeCorrect) cls += " correct-answer";
+          else if (picked) cls += " wrong-answer";
+        } else if (picked) cls += " picked";
+        return (
+          <button key={idx} className={cls} disabled={revealed} onClick={() => toggle(idx)}>
+            <span className={"fdv-checkbox-box" + (picked ? " checked" : "")}>{picked ? "✓" : ""}</span>
+            <span>{opt}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function TfmQuestion({ q, draft, setDraft, revealed }) {
+  function setRow(i, val) {
+    if (revealed) return;
+    const answers = [...draft.answers];
+    answers[i] = val;
+    setDraft({ answers });
+  }
+  return (
+    <div className="fdv-tfm-table">
+      {q.statements.map((s, i) => (
+        <div className="fdv-tfm-row" key={i}>
+          <div className="fdv-tfm-text">{s.text}</div>
+          <div className="fdv-tfm-choices">
+            {[true, false].map((val) => {
+              let cls = "fdv-tfm-pill";
+              if (revealed) {
+                cls += " locked";
+                if (val === s.correct) cls += " correct-answer";
+                else if (draft.answers[i] === val) cls += " wrong-answer";
+              } else if (draft.answers[i] === val) cls += " picked";
+              return (
+                <button key={String(val)} className={cls} disabled={revealed} onClick={() => setRow(i, val)}>
+                  {val ? "Wahr" : "Falsch"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function MatchingQuestion({ q, draft, setDraft, revealed }) {
+  function setAssign(i, value) {
+    if (revealed) return;
+    const assign = [...draft.assign];
+    assign[i] = value || null;
+    setDraft({ ...draft, assign });
+  }
+  return (
+    <div className="fdv-matching">
+      {q.pairs.map((p, i) => {
+        const val = draft.assign[i];
+        const correct = revealed && val === p.right;
+        const wrong = revealed && val !== p.right;
+        return (
+          <div className="fdv-matching-row" key={i}>
+            <div className="fdv-matching-left">{p.left}</div>
+            <select
+              className={"fdv-matching-select" + (correct ? " correct-answer" : wrong ? " wrong-answer" : "")}
+              disabled={revealed}
+              value={val || ""}
+              onChange={(e) => setAssign(i, e.target.value)}
+            >
+              <option value="" disabled>wählen …</option>
+              {draft.pool.map((opt, oi) => (
+                <option key={oi} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {revealed && wrong && <div className="fdv-matching-solution">Richtig: {p.right}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+function QuestionBody({ q, draft, setDraft, revealed }) {
+  if (q.type === "sc") return <ScQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "tf") return <TfQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "ms") return <MsQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "tfm") return <TfmQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  if (q.type === "matching") return <MatchingQuestion q={q} draft={draft} setDraft={setDraft} revealed={revealed} />;
+  return null;
+}
+
+// ---- Forced password change screen (shown after first login with a temp password) ----
+function ForcePasswordChangeScreen({ onDone }) {
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (pw1.length < 6) {
+      setError("Das Passwort muss mindestens 6 Zeichen haben.");
+      return;
+    }
+    if (pw1 !== pw2) {
+      setError("Die beiden Passwörter stimmen nicht überein.");
+      return;
+    }
+    setBusy(true);
+    const { error: updErr } = await sb.auth.updateUser({
+      password: pw1,
+      data: { must_change_password: false },
+    });
+    setBusy(false);
+    if (updErr) {
+      setError("Fehler beim Setzen des Passworts: " + updErr.message);
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <div className="fdv-app">
+      <div className="fdv-login-wrap">
+        <h1 className="fdv-title">Neues Passwort setzen</h1>
+        <p className="fdv-sub">Aus Sicherheitsgründen musst du beim ersten Login ein eigenes Passwort vergeben.</p>
+        <form className="fdv-card fdv-login-card" onSubmit={submit}>
+          <label className="fdv-label">Neues Passwort</label>
+          <input className="fdv-input" type="password" required value={pw1} onChange={(e) => setPw1(e.target.value)} />
+          <label className="fdv-label">Neues Passwort wiederholen</label>
+          <input className="fdv-input" type="password" required value={pw2} onChange={(e) => setPw2(e.target.value)} />
+          {error && <div className="fdv-form-error">{error}</div>}
+          <button className="fdv-next-btn" type="submit" disabled={busy}>
+            {busy ? "Speichern …" : "Passwort setzen"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---- Admin screen: create a new user with a temporary password ----
+function AddUserScreen({ accessToken, onCancel }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(null);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSuccess(null);
+    if (!email.trim() || password.length < 6) {
+      setError("Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen angeben.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken,
+        },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Unbekannter Fehler beim Erstellen des Nutzers.");
+      } else {
+        setSuccess(data.user.email);
+        setEmail("");
+        setPassword("");
+      }
+    } catch (err) {
+      setError("Verbindungsfehler: " + err.message);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neuer Nutzer</span>
+      <form onSubmit={submit}>
+        <label className="fdv-label">E-Mail</label>
+        <input className="fdv-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className="fdv-label">Temporäres Passwort</label>
+        <input className="fdv-input" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {error && <div className="fdv-form-error">{error}</div>}
+        {success && <div className="fdv-explanation"><strong>Erstellt.</strong> {success} kann sich jetzt mit dem temporären Passwort einloggen und muss danach sofort ein eigenes setzen.</div>}
+        <div className="fdv-form-actions">
+          <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
+          <button type="submit" className="fdv-result-btn primary" disabled={busy}>
+            {busy ? "Erstellen …" : "Nutzer erstellen"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ---- Login screen ----
+function LoginScreen({ onLoggedIn }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) {
+      setError("Login fehlgeschlagen. E-Mail/Passwort prüfen.");
+      return;
+    }
+    onLoggedIn(data.session);
+  }
+
+  return (
+    <div className="fdv-app">
+      <div className="fdv-login-wrap">
+        <h1 className="fdv-title">FDV-Trainer</h1>
+        <p className="fdv-sub">Melde dich mit deinem Zugang an.</p>
+        <form className="fdv-card fdv-login-card" onSubmit={submit}>
+          <label className="fdv-label">E-Mail</label>
+          <input className="fdv-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label className="fdv-label">Passwort</label>
+          <input className="fdv-input" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          {error && <div className="fdv-form-error">{error}</div>}
+          <button className="fdv-next-btn" type="submit" disabled={busy}>
+            {busy ? "Einloggen …" : "Einloggen"}
+          </button>
+        </form>
+        <p className="fdv-sub" style={{ marginTop: 16 }}>
+          Noch keinen Zugang? Frag die Person, die diese App verwaltet, um ein Konto.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ---- Add-question form ----
+function emptyFormForType(type) {
+  if (type === "sc") return { options: ["", "", "", ""], correctIndex: 0 };
+  if (type === "ms") return { options: ["", "", "", ""], correctFlags: [false, false, false, false] };
+  if (type === "tf") return { correct: true };
+  if (type === "tfm") return { statements: [{ text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }] };
+  if (type === "matching") return { pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] };
+  return {};
+}
+
+function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
+  const [chapterCode, setChapterCode] = useState(chapters[0]?.code || "");
+  const [type, setType] = useState("sc");
+  const [prompt, setPrompt] = useState("");
+  const [image, setImage] = useState("");
+  const [explanation, setExplanation] = useState("");
+  const [form, setForm] = useState(emptyFormForType("sc"));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  function changeType(t) {
+    setType(t);
+    setForm(emptyFormForType(t));
+  }
+
+  function buildPayload() {
+    if (type === "sc") {
+      return { options: form.options, correctIndex: form.correctIndex };
+    }
+    if (type === "ms") {
+      const correctIndices = form.correctFlags.map((v, i) => (v ? i : -1)).filter((i) => i >= 0);
+      return { options: form.options, correctIndices };
+    }
+    if (type === "tf") {
+      return { correct: form.correct };
+    }
+    if (type === "tfm") {
+      return { statements: form.statements.filter((s) => s.text.trim() !== "") };
+    }
+    if (type === "matching") {
+      return { pairs: form.pairs.filter((p) => p.left.trim() !== "" && p.right.trim() !== "") };
+    }
+    return {};
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (!chapterCode || !prompt.trim()) {
+      setError("Bitte Kapitel und Frage ausfüllen.");
+      return;
+    }
+    setSaving(true);
+    const payload = buildPayload();
+    const { error } = await sb.from("questions").insert({
+      chapter_code: chapterCode,
+      type,
+      prompt: prompt.trim(),
+      image: image.trim() || null,
+      explanation: explanation.trim(),
+      payload,
+      created_by: userId,
+    });
+    setSaving(false);
+    if (error) {
+      setError("Speichern fehlgeschlagen: " + error.message);
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neue Frage</span>
+      <form onSubmit={submit}>
+        <label className="fdv-label">Kapitel</label>
+        <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
+          {chapters.map((c) => (
+            <option key={c.code} value={c.code}>{c.code} – {c.title}</option>
+          ))}
+        </select>
+
+        <label className="fdv-label">Fragetyp</label>
+        <select className="fdv-input" value={type} onChange={(e) => changeType(e.target.value)}>
+          <option value="sc">Single Choice</option>
+          <option value="ms">Multiple Select</option>
+          <option value="tf">Wahr / Falsch</option>
+          <option value="tfm">Wahr/Falsch-Matrix</option>
+          <option value="matching">Zuordnung</option>
+        </select>
+
+        <label className="fdv-label">{type === "tf" ? "Aussage" : "Frage"}</label>
+        <textarea className="fdv-input" rows={2} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+
+        <label className="fdv-label">Bild-URL (optional)</label>
+        <input className="fdv-input" type="text" placeholder="https://…" value={image} onChange={(e) => setImage(e.target.value)} />
+
+        {type === "sc" && (
+          <>
+            <label className="fdv-label">Antwortoptionen (richtige markieren)</label>
+            {form.options.map((opt, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  type="radio"
+                  name="sc-correct"
+                  checked={form.correctIndex === i}
+                  onChange={() => setForm({ ...form, correctIndex: i })}
+                />
+                <input
+                  className="fdv-input"
+                  value={opt}
+                  placeholder={`Option ${i + 1}`}
+                  onChange={(e) => {
+                    const options = [...form.options];
+                    options[i] = e.target.value;
+                    setForm({ ...form, options });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "ms" && (
+          <>
+            <label className="fdv-label">Antwortoptionen (alle richtigen ankreuzen)</label>
+            {form.options.map((opt, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  type="checkbox"
+                  checked={form.correctFlags[i]}
+                  onChange={(e) => {
+                    const correctFlags = [...form.correctFlags];
+                    correctFlags[i] = e.target.checked;
+                    setForm({ ...form, correctFlags });
+                  }}
+                />
+                <input
+                  className="fdv-input"
+                  value={opt}
+                  placeholder={`Option ${i + 1}`}
+                  onChange={(e) => {
+                    const options = [...form.options];
+                    options[i] = e.target.value;
+                    setForm({ ...form, options });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "tf" && (
+          <>
+            <label className="fdv-label">Richtige Antwort</label>
+            <div className="fdv-form-row">
+              <label><input type="radio" name="tf" checked={form.correct === true} onChange={() => setForm({ correct: true })} /> Wahr</label>
+              <label><input type="radio" name="tf" checked={form.correct === false} onChange={() => setForm({ correct: false })} /> Falsch</label>
+            </div>
+          </>
+        )}
+
+        {type === "tfm" && (
+          <>
+            <label className="fdv-label">Teilaussagen</label>
+            {form.statements.map((s, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  className="fdv-input"
+                  value={s.text}
+                  placeholder={`Aussage ${i + 1}`}
+                  onChange={(e) => {
+                    const statements = [...form.statements];
+                    statements[i] = { ...statements[i], text: e.target.value };
+                    setForm({ ...form, statements });
+                  }}
+                />
+                <select
+                  className="fdv-input fdv-input-narrow"
+                  value={s.correct ? "wahr" : "falsch"}
+                  onChange={(e) => {
+                    const statements = [...form.statements];
+                    statements[i] = { ...statements[i], correct: e.target.value === "wahr" };
+                    setForm({ ...form, statements });
+                  }}
+                >
+                  <option value="wahr">Wahr</option>
+                  <option value="falsch">Falsch</option>
+                </select>
+              </div>
+            ))}
+          </>
+        )}
+
+        {type === "matching" && (
+          <>
+            <label className="fdv-label">Paare (links → rechts)</label>
+            {form.pairs.map((p, i) => (
+              <div className="fdv-form-row" key={i}>
+                <input
+                  className="fdv-input"
+                  value={p.left}
+                  placeholder={`Links ${i + 1}`}
+                  onChange={(e) => {
+                    const pairs = [...form.pairs];
+                    pairs[i] = { ...pairs[i], left: e.target.value };
+                    setForm({ ...form, pairs });
+                  }}
+                />
+                <input
+                  className="fdv-input"
+                  value={p.right}
+                  placeholder={`Rechts ${i + 1}`}
+                  onChange={(e) => {
+                    const pairs = [...form.pairs];
+                    pairs[i] = { ...pairs[i], right: e.target.value };
+                    setForm({ ...form, pairs });
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        <label className="fdv-label">Erklärung (optional)</label>
+        <textarea className="fdv-input" rows={2} value={explanation} onChange={(e) => setExplanation(e.target.value)} />
+
+        {error && <div className="fdv-form-error">{error}</div>}
+
+        <div className="fdv-form-actions">
+          <button type="button" className="fdv-result-btn" onClick={onCancel}>Abbrechen</button>
+          <button type="submit" className="fdv-result-btn primary" disabled={saving}>
+            {saving ? "Speichern …" : "Frage speichern"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ---- Main app ----
+function FdvTrainerCloud() {
+  const [session, setSession] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [chapters, setChapters] = useState([]);
+  const [progress, setProgress] = useState({});
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [screen, setScreen] = useState("home");
+  const [session_, setSessionQuiz] = useState(null); // quiz session
+  const [draft, setDraft] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthChecked(true);
+    });
+    const { data: listener } = sb.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const loadData = useCallback(async (userId) => {
+    setDataLoaded(false);
+    const { data: chapterRows } = await sb.from("chapters").select("*").order("sort_order").order("code");
+    const { data: questionRows } = await sb.from("questions").select("*");
+    const { data: progressRows } = await sb.from("progress").select("*").eq("user_id", userId);
+    const { data: adminRow } = await sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle();
+
+    const byChapter = {};
+    (chapterRows || []).forEach((c) => {
+      byChapter[c.code] = { code: c.code, title: c.title, questions: [] };
+    });
+    (questionRows || []).forEach((row) => {
+      const q = rowToQuestion(row);
+      if (byChapter[row.chapter_code]) byChapter[row.chapter_code].questions.push(q);
+    });
+    const orderedChapters = (chapterRows || []).map((c) => byChapter[c.code]);
+
+    const progressMap = {};
+    (progressRows || []).forEach((p) => {
+      progressMap[p.question_id] = p;
+    });
+
+    setChapters(orderedChapters);
+    setProgress(progressMap);
+    setIsAdmin(!!adminRow);
+    setDataLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (session && session.user) {
+      loadData(session.user.id);
+    }
+  }, [session, loadData]);
+
+  const allQuestions = useMemo(() => chapters.flatMap((c) => c.questions), [chapters]);
+  const wrongCount = useMemo(
+    () => allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false).length,
+    [allQuestions, progress]
+  );
+  const totalAttempted = useMemo(() => allQuestions.filter((q) => progress[q.id]).length, [allQuestions, progress]);
+
+  function loadQuestion(q) {
+    setDraft(initDraft(q));
+    setRevealed(false);
+  }
+  function beginSession(title, code, questions) {
+    const qs = shuffledCopy(questions).map(randomizeQuestion);
+    setSessionQuiz({ title, code, questions: qs, index: 0, correctCount: 0 });
+    loadQuestion(qs[0]);
+    setScreen("quiz");
+  }
+  function startChapter(chapter) { beginSession(chapter.title, chapter.code, chapter.questions); }
+  function startMixed() { beginSession("Zufallstraining", null, shuffledCopy(allQuestions).slice(0, 15)); }
+  function startReview() {
+    const wrong = allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false);
+    beginSession("Fehler wiederholen", null, wrong);
+  }
+
+  async function check() {
+    const q = session_.questions[session_.index];
+    const correct = isDraftCorrect(q, draft);
+    setRevealed(true);
+    const prior = progress[q.id] || { attempts: 0, correct_count: 0 };
+    const nextRow = {
+      user_id: session.user.id,
+      question_id: q.id,
+      attempts: prior.attempts + 1,
+      correct_count: prior.correct_count + (correct ? 1 : 0),
+      last_correct: correct,
+      updated_at: new Date().toISOString(),
+    };
+    setProgress((p) => ({ ...p, [q.id]: nextRow }));
+    setSessionQuiz((s) => ({ ...s, correctCount: s.correctCount + (correct ? 1 : 0) }));
+    await sb.from("progress").upsert(nextRow);
+  }
+
+  function next() {
+    if (session_.index + 1 >= session_.questions.length) {
+      setScreen("result");
+    } else {
+      const nextIndex = session_.index + 1;
+      setSessionQuiz((s) => ({ ...s, index: nextIndex }));
+      loadQuestion(session_.questions[nextIndex]);
+    }
+  }
+  function goHome() {
+    setSessionQuiz(null);
+    setDraft(null);
+    setRevealed(false);
+    setScreen("home");
+  }
+  async function logout() {
+    await sb.auth.signOut();
+    setSession(null);
+    setChapters([]);
+    setProgress({});
+    setScreen("home");
+  }
+
+  if (!authChecked) {
+    return <div className="fdv-app"><p className="fdv-sub">Lädt …</p></div>;
+  }
+  if (!session) {
+    return <LoginScreen onLoggedIn={setSession} />;
+  }
+  if (session.user.user_metadata && session.user.user_metadata.must_change_password) {
+    return (
+      <ForcePasswordChangeScreen
+        onDone={async () => {
+          const { data } = await sb.auth.getSession();
+          setSession(data.session);
+        }}
+      />
+    );
+  }
+  if (!dataLoaded) {
+    return <div className="fdv-app"><p className="fdv-sub">Fragen werden geladen …</p></div>;
+  }
+
+  const currentQ = session_ && session_.questions.length > 0 ? session_.questions[session_.index] : null;
+  const draftComplete = currentQ && draft ? isDraftComplete(currentQ, draft) : false;
+  const needsCheckButton = currentQ && ["ms", "tfm", "matching"].includes(currentQ.type);
+  const overall = overallStats(chapters, progress);
+
+  return (
+    <div className="fdv-app">
+      {screen === "home" && (
+        <>
+          <div className="fdv-header">
+            <h1 className="fdv-title">FDV-Trainer</h1>
+            <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
+          </div>
+          <p className="fdv-sub fdv-sub-email">{session.user.email}</p>
+
+          <div className="fdv-progress-card">
+            <ProgressRing attempted={overall.attempted} correct={overall.correct} total={overall.total} />
+          </div>
+
+          <div className="fdv-training-row">
+            <button className="fdv-training-btn" onClick={startMixed}>
+              <span className="label">Zufallstraining</span>
+              <span className="meta">15 gemischte Fragen</span>
+            </button>
+            <button className={"fdv-training-btn" + (wrongCount === 0 ? " disabled" : "")} onClick={startReview}>
+              <span className="label">Fehler wiederholen</span>
+              <span className="meta">{wrongCount} offen</span>
+            </button>
+          </div>
+
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
+          )}
+
+          <div className="fdv-section-label">Kapitel</div>
+          <div className="fdv-chapter-list">
+            {chapters.map((chapter) => {
+              const stats = chapterStats(chapter, progress);
+              const color = masteryColor(stats);
+              const accent = categoryAccent(chapter.code);
+              return (
+                <button
+                  key={chapter.code}
+                  className="fdv-chapter-row"
+                  style={{ borderLeft: `4px solid ${accent}` }}
+                  onClick={() => startChapter(chapter)}
+                >
+                  <span className="fdv-chapter-code">{chapter.code}</span>
+                  <span className="fdv-chapter-title">{chapter.title}</span>
+                  <span className="fdv-mastery">
+                    <span className="fdv-mastery-dot" style={{ background: color }} />
+                    <span className="fdv-mastery-text">{stats.attempted}/{stats.total}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {screen === "add" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Neue Frage</span>
+          </div>
+          <AddQuestionScreen
+            chapters={chapters}
+            userId={session.user.id}
+            onCancel={() => setScreen("home")}
+            onDone={async () => {
+              await loadData(session.user.id);
+              setScreen("home");
+            }}
+          />
+        </>
+      )}
+
+      {screen === "adduser" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Neuer Nutzer</span>
+          </div>
+          <AddUserScreen
+            accessToken={session.access_token}
+            onCancel={() => setScreen("home")}
+          />
+        </>
+      )}
+
+      {screen === "quiz" && session_ && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={goHome}>Zurück</button>
+            <span className="fdv-quiz-title">{session_.title}{session_.code ? " · " + session_.code : ""}</span>
+            <span className="fdv-quiz-title" style={{ flex: "none", textAlign: "right" }}>
+              {session_.index + 1}/{session_.questions.length}
+            </span>
+          </div>
+          <div className="fdv-progress-track">
+            {session_.questions.map((q, i) => {
+              let cls = "fdv-progress-tick";
+              if (i === session_.index) cls += " current";
+              else if (i < session_.index) {
+                const p = progress[q.id];
+                cls += p && p.last_correct ? " correct" : " wrong";
+              }
+              return <div key={q.id} className={cls} />;
+            })}
+          </div>
+
+          {!currentQ ? (
+            <div className="fdv-card">
+              <p className="fdv-question">Keine Fragen in dieser Auswahl.</p>
+              <button className="fdv-next-btn" onClick={goHome}>Zurück zur Übersicht</button>
+            </div>
+          ) : (
+            <div className="fdv-card">
+              <span className="fdv-type-tag">{TYPE_LABEL[currentQ.type] || currentQ.type}</span>
+              {currentQ.image && (
+                <img className="fdv-question-image" src={currentQ.image} alt="" onError={(e) => { e.target.style.display = "none"; }} />
+              )}
+              <p className="fdv-question">{currentQ.prompt}</p>
+              <QuestionBody q={currentQ} draft={draft} setDraft={(d) => setDraft({ ...draft, ...d })} revealed={revealed} />
+
+              {!revealed && needsCheckButton && (
+                <button className={"fdv-check-btn" + (draftComplete ? " enabled" : "")} disabled={!draftComplete} onClick={check}>
+                  Prüfen
+                </button>
+              )}
+              {!revealed && !needsCheckButton && draftComplete && (
+                <button className="fdv-check-btn enabled" onClick={check}>Prüfen</button>
+              )}
+
+              {revealed && (
+                <>
+                  {currentQ.explanation && (
+                    <div className="fdv-explanation">
+                      <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
+                    </div>
+                  )}
+                  <button className="fdv-next-btn" onClick={next}>
+                    {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {screen === "result" && session_ && (
+        <div className="fdv-card" style={{ textAlign: "center", marginTop: 40 }}>
+          <div className="fdv-quiz-title" style={{ textAlign: "center" }}>{session_.title}</div>
+          <div
+            className="fdv-result-score"
+            style={{
+              color:
+                session_.questions.length === 0 ? "var(--text)" :
+                session_.correctCount / session_.questions.length >= 0.8 ? "var(--green)" :
+                session_.correctCount / session_.questions.length >= 0.5 ? "var(--amber)" : "var(--red)",
+            }}
+          >
+            {session_.correctCount}/{session_.questions.length}
+          </div>
+          <div className="fdv-result-sub">richtig beantwortet</div>
+          <div className="fdv-result-actions">
+            {session_.code && (
+              <button className="fdv-result-btn" onClick={() => { const chapter = chapters.find((c) => c.code === session_.code); startChapter(chapter); }}>
+                Kapitel wiederholen
+              </button>
+            )}
+            {wrongCount > 0 && <button className="fdv-result-btn warn" onClick={startReview}>Fehler wiederholen ({wrongCount})</button>}
+            <button className="fdv-result-btn primary" onClick={goHome}>Zur Übersicht</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const rootEl = document.getElementById("root");
+ReactDOM.createRoot(rootEl).render(<FdvTrainerCloud />);
+
+</script>
+</body>
+</html>
