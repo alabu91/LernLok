@@ -33,11 +33,6 @@
           --amber-dim: #f7ecdb;
           --grey: #888687;
           --grey-dark: #58585a;
-          --cat-grundlagen: #8a94a3;
-          --cat-betrieb: #75c93b;
-          --cat-sicherheit: #d1922f;
-          --cat-lokfuehrer: #3f8f8a;
-          --cat-railcare: #9b7fc4;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           background: var(--bg);
           color: var(--text);
@@ -66,19 +61,6 @@
           font-size: 13px;
           margin: 2px 0 20px;
         }
-        .fdv-sub-email { margin-bottom: 14px; }
-        .fdv-progress-card {
-          display: flex;
-          align-items: center;
-          background: var(--panel);
-          border: 1px solid var(--panel-border);
-          border-radius: 8px;
-          padding: 14px 16px;
-          margin-bottom: 20px;
-        }
-        .fdv-ring-wrap { display: flex; align-items: center; gap: 14px; }
-        .fdv-ring-label-main { font-size: 16px; font-weight: 700; color: var(--text); }
-        .fdv-ring-label-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
         .fdv-railline {
           height: 3px;
           background: repeating-linear-gradient(
@@ -278,9 +260,7 @@
           text-align: left;
           cursor: pointer;
           line-height: 1.35;
-          transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
         }
-        .fdv-option:active:not(.locked) { transform: scale(0.99); }
         .fdv-option-tf { flex: 1; justify-content: center; }
         .fdv-option:hover:not(.locked) { border-color: var(--grey); }
         .fdv-option.picked { border-color: var(--grey-dark); }
@@ -340,7 +320,6 @@
           padding: 7px 10px;
           font-size: 12px;
           cursor: pointer;
-          transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
         .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
         .fdv-tfm-pill.locked { cursor: default; }
@@ -367,7 +346,6 @@
           border: 1px solid var(--panel-border);
           border-radius: 5px;
           padding: 8px 8px;
-          transition: border-color 0.2s ease;
           font-size: 13px;
         }
         .fdv-matching-select.correct-answer { border-color: var(--green); }
@@ -394,13 +372,7 @@
           font-size: 13px;
           color: var(--text-dim);
           line-height: 1.5;
-          animation: fdvFadeIn 0.3s ease;
         }
-        @keyframes fdvFadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: none; }
-        }
-        .fdv-next-btn { animation: fdvFadeIn 0.3s ease; }
         .fdv-explanation strong { color: var(--text); }
         .fdv-next-btn {
           margin-top: 18px;
@@ -595,59 +567,6 @@ function masteryColor(stats) {
   if (ratio >= 0.8) return "var(--green)";
   if (ratio >= 0.5) return "var(--amber)";
   return "var(--red)";
-}
-
-// Thematic accent per chapter, purely for visual grouping in the chapter list.
-function categoryAccent(code) {
-  const n = parseFloat(code);
-  if (!isNaN(n)) {
-    if (n >= 300.1 && n <= 300.3) return "var(--cat-grundlagen)";
-    if (n >= 300.4 && n <= 300.7) return "var(--cat-betrieb)";
-    if (n >= 300.8 && n <= 300.9) return "var(--cat-sicherheit)";
-    if (n >= 300.13 && n <= 300.14) return "var(--cat-lokfuehrer)";
-  }
-  return "var(--cat-railcare)"; // company-specific chapters (RLC, DS3, HBVG-SG, …)
-}
-
-function overallStats(chapters, progress) {
-  let attempted = 0, correct = 0, total = 0;
-  chapters.forEach((c) => {
-    const s = chapterStats(c, progress);
-    attempted += s.attempted;
-    correct += s.correct;
-    total += s.total;
-  });
-  return { attempted, correct, total };
-}
-
-// Compact circular progress ring shown at the top of the home screen.
-function ProgressRing({ attempted, correct, total }) {
-  const pct = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
-  const color =
-    attempted === 0 ? "var(--grey)" :
-    pct >= 80 ? "var(--green)" :
-    pct >= 50 ? "var(--amber)" : "var(--red)";
-  const r = 26, c = 2 * Math.PI * r;
-  const dash = attempted > 0 ? (pct / 100) * c : 0;
-  return (
-    <div className="fdv-ring-wrap">
-      <svg width="64" height="64" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--panel-border)" strokeWidth="6" />
-        <circle
-          cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`} transform="rotate(-90 32 32)"
-          style={{ transition: "stroke-dasharray 0.4s ease" }}
-        />
-        <text x="32" y="37" textAnchor="middle" fontSize="16" fontWeight="700" fill="var(--text)">
-          {attempted > 0 ? pct + "%" : "–"}
-        </text>
-      </svg>
-      <div className="fdv-ring-label">
-        <div className="fdv-ring-label-main">{attempted}/{total}</div>
-        <div className="fdv-ring-label-sub">Fragen geübt</div>
-      </div>
-    </div>
-  );
 }
 
 // row from Supabase `questions` table -> app-shaped question object
@@ -1376,7 +1295,6 @@ function FdvTrainerCloud() {
   const currentQ = session_ && session_.questions.length > 0 ? session_.questions[session_.index] : null;
   const draftComplete = currentQ && draft ? isDraftComplete(currentQ, draft) : false;
   const needsCheckButton = currentQ && ["ms", "tfm", "matching"].includes(currentQ.type);
-  const overall = overallStats(chapters, progress);
 
   return (
     <div className="fdv-app">
@@ -1386,11 +1304,10 @@ function FdvTrainerCloud() {
             <h1 className="fdv-title">FDV-Trainer</h1>
             <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
           </div>
-          <p className="fdv-sub fdv-sub-email">{session.user.email}</p>
-
-          <div className="fdv-progress-card">
-            <ProgressRing attempted={overall.attempted} correct={overall.correct} total={overall.total} />
-          </div>
+          <p className="fdv-sub">
+            {session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt
+          </p>
+          <div className="fdv-railline" />
 
           <div className="fdv-training-row">
             <button className="fdv-training-btn" onClick={startMixed}>
@@ -1415,14 +1332,8 @@ function FdvTrainerCloud() {
             {chapters.map((chapter) => {
               const stats = chapterStats(chapter, progress);
               const color = masteryColor(stats);
-              const accent = categoryAccent(chapter.code);
               return (
-                <button
-                  key={chapter.code}
-                  className="fdv-chapter-row"
-                  style={{ borderLeft: `4px solid ${accent}` }}
-                  onClick={() => startChapter(chapter)}
-                >
+                <button key={chapter.code} className="fdv-chapter-row" onClick={() => startChapter(chapter)}>
                   <span className="fdv-chapter-code">{chapter.code}</span>
                   <span className="fdv-chapter-title">{chapter.title}</span>
                   <span className="fdv-mastery">
