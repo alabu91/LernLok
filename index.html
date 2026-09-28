@@ -492,6 +492,19 @@
         }
         .fdv-link-btn:hover { color: var(--text); }
         .fdv-delete-btn { width: 100%; margin-top: 10px; }
+        .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
+        .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
+        .fdv-prev-btn {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 13px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .fdv-prev-btn:hover { border-color: var(--grey); }
 
 </style>
 </head>
@@ -1292,6 +1305,7 @@ function FdvTrainerCloud() {
     setProgress(progressMap);
     setIsAdmin(!!adminRow);
     setDataLoaded(true);
+    return orderedChapters;
   }, []);
 
   useEffect(() => {
@@ -1313,7 +1327,7 @@ function FdvTrainerCloud() {
   }
   function beginSession(title, code, questions) {
     const qs = shuffledCopy(questions).map(randomizeQuestion);
-    setSessionQuiz({ title, code, questions: qs, index: 0, correctCount: 0 });
+    setSessionQuiz({ title, code, questions: qs, index: 0, correctCount: 0, answers: {}, results: {} });
     loadQuestion(qs[0]);
     setScreen("quiz");
   }
@@ -1338,8 +1352,23 @@ function FdvTrainerCloud() {
       updated_at: new Date().toISOString(),
     };
     setProgress((p) => ({ ...p, [q.id]: nextRow }));
-    setSessionQuiz((s) => ({ ...s, correctCount: s.correctCount + (correct ? 1 : 0) }));
+    setSessionQuiz((s) => {
+      const results = { ...s.results, [q.id]: correct };
+      const answers = { ...s.answers, [q.id]: draft };
+      return { ...s, results, answers, correctCount: s.questions.filter((x) => results[x.id]).length };
+    });
     await sb.from("progress").upsert(nextRow);
+  }
+
+  // Show a question: restore the saved answer (read-only review) if it was already answered.
+  function openQuestion(q, answers) {
+    const saved = answers && answers[q.id];
+    if (saved) {
+      setDraft(saved);
+      setRevealed(true);
+    } else {
+      loadQuestion(q);
+    }
   }
 
   function next() {
@@ -1348,8 +1377,15 @@ function FdvTrainerCloud() {
     } else {
       const nextIndex = session_.index + 1;
       setSessionQuiz((s) => ({ ...s, index: nextIndex }));
-      loadQuestion(session_.questions[nextIndex]);
+      openQuestion(session_.questions[nextIndex], session_.answers);
     }
+  }
+
+  function goBack() {
+    if (!session_ || session_.index <= 0) return;
+    const newIndex = session_.index - 1;
+    setSessionQuiz((s) => ({ ...s, index: newIndex }));
+    openQuestion(session_.questions[newIndex], session_.answers);
   }
   function startEdit(qId) {
     const chapter = chapters.find((c) => c.questions.some((x) => x.id === qId));
@@ -1491,8 +1527,42 @@ function FdvTrainerCloud() {
             editing={editingQ}
             onCancel={() => setScreen(session_ ? "quiz" : "home")}
             onDone={async () => {
-              await loadData(session.user.id);
+              const qId = editingQ.question.id;
+              const fresh = await loadData(session.user.id);
               setEditingQ(null);
+              if (!fresh || fresh.length === 0) {
+                goHome();
+                return;
+              }
+              const edited = fresh.flatMap((c) => c.questions).find((x) => x.id === qId);
+              if (session_) {
+                const idx = session_.questions.findIndex((x) => x.id === qId);
+                if (idx >= 0) {
+                  let questions = [...session_.questions];
+                  const answers = { ...session_.answers };
+                  const results = { ...session_.results };
+                  delete answers[qId];
+                  delete results[qId];
+                  let newIndex = idx;
+                  if (edited) {
+                    // edited: put the corrected version back so it can be answered again
+                    questions[idx] = randomizeQuestion(edited);
+                  } else {
+                    // deleted: drop it from the running session
+                    questions = questions.filter((x) => x.id !== qId);
+                    if (questions.length === 0) {
+                      goHome();
+                      return;
+                    }
+                    newIndex = Math.min(idx, questions.length - 1);
+                  }
+                  const correctCount = questions.filter((x) => results[x.id]).length;
+                  setSessionQuiz({ ...session_, questions, answers, results, correctCount, index: newIndex });
+                  openQuestion(questions[newIndex], answers);
+                  setScreen("quiz");
+                  return;
+                }
+              }
               goHome();
             }}
           />
@@ -1512,9 +1582,8 @@ function FdvTrainerCloud() {
             {session_.questions.map((q, i) => {
               let cls = "fdv-progress-tick";
               if (i === session_.index) cls += " current";
-              else if (i < session_.index) {
-                const p = progress[q.id];
-                cls += p && p.last_correct ? " correct" : " wrong";
+              else if (session_.results && session_.results[q.id] !== undefined) {
+                cls += session_.results[q.id] ? " correct" : " wrong";
               }
               return <div key={q.id} className={cls} />;
             })}
@@ -1557,9 +1626,16 @@ function FdvTrainerCloud() {
                       <strong>{isDraftCorrect(currentQ, draft) ? "Richtig." : "Nicht ganz."}</strong> {currentQ.explanation}
                     </div>
                   )}
-                  <button className="fdv-next-btn" onClick={next}>
-                    {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
-                  </button>
+                  <div className="fdv-nav-row">
+                    {session_.index > 0 && (
+                      <button type="button" className="fdv-prev-btn" onClick={goBack}>
+                        ‹ Vorherige
+                      </button>
+                    )}
+                    <button className="fdv-next-btn" onClick={next}>
+                      {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
+                    </button>
+                  </div>
                 </>
               )}
             </div>
