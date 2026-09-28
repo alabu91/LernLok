@@ -474,6 +474,24 @@
           margin-bottom: 22px;
         }
         .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+        .fdv-card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
+        .fdv-link-btn {
+          background: none;
+          border: none;
+          padding: 4px 0;
+          font-size: 12px;
+          color: var(--grey-dark);
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        .fdv-link-btn:hover { color: var(--text); }
+        .fdv-delete-btn { width: 100%; margin-top: 10px; }
 
 </style>
 </head>
@@ -915,17 +933,36 @@ function emptyFormForType(type) {
   if (type === "ms") return { options: ["", "", "", ""], correctFlags: [false, false, false, false] };
   if (type === "tf") return { correct: true };
   if (type === "tfm") return { statements: [{ text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }, { text: "", correct: true }] };
-  if (type === "matching") return { pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] };
+  if (type === "matching") return { pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] };
   return {};
 }
 
-function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
-  const [chapterCode, setChapterCode] = useState(chapters[0]?.code || "");
-  const [type, setType] = useState("sc");
-  const [prompt, setPrompt] = useState("");
-  const [image, setImage] = useState("");
-  const [explanation, setExplanation] = useState("");
-  const [form, setForm] = useState(emptyFormForType("sc"));
+function padTo(arr, n, filler) {
+  const a = [...arr];
+  while (a.length < n) a.push(filler());
+  return a;
+}
+
+// Build form state from an existing question (used when editing).
+function formFromQuestion(q) {
+  if (q.type === "sc") return { options: padTo(q.options, 4, () => ""), correctIndex: q.correctIndex };
+  if (q.type === "ms") {
+    const options = padTo(q.options, 4, () => "");
+    return { options, correctFlags: options.map((_, i) => q.correctIndices.includes(i)) };
+  }
+  if (q.type === "tf") return { correct: q.correct };
+  if (q.type === "tfm") return { statements: padTo(q.statements.map((s) => ({ ...s })), 4, () => ({ text: "", correct: true })) };
+  if (q.type === "matching") return { pairs: padTo(q.pairs.map((p) => ({ ...p })), 4, () => ({ left: "", right: "" })) };
+  return emptyFormForType(q.type);
+}
+
+function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
+  const [chapterCode, setChapterCode] = useState(editing ? editing.chapterCode : (chapters[0]?.code || ""));
+  const [type, setType] = useState(editing ? editing.question.type : "sc");
+  const [prompt, setPrompt] = useState(editing ? editing.question.prompt : "");
+  const [image, setImage] = useState(editing ? (editing.question.image || "") : "");
+  const [explanation, setExplanation] = useState(editing ? (editing.question.explanation || "") : "");
+  const [form, setForm] = useState(editing ? formFromQuestion(editing.question) : emptyFormForType("sc"));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -936,11 +973,13 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
 
   function buildPayload() {
     if (type === "sc") {
-      return { options: form.options, correctIndex: form.correctIndex };
+      const kept = form.options.map((o, i) => ({ o, i })).filter((x) => x.o.trim() !== "");
+      return { options: kept.map((x) => x.o), correctIndex: kept.findIndex((x) => x.i === form.correctIndex) };
     }
     if (type === "ms") {
-      const correctIndices = form.correctFlags.map((v, i) => (v ? i : -1)).filter((i) => i >= 0);
-      return { options: form.options, correctIndices };
+      const kept = form.options.map((o, i) => ({ o, i })).filter((x) => x.o.trim() !== "");
+      const correctIndices = kept.map((x, k) => (form.correctFlags[x.i] ? k : -1)).filter((k) => k >= 0);
+      return { options: kept.map((x) => x.o), correctIndices };
     }
     if (type === "tf") {
       return { correct: form.correct };
@@ -961,17 +1000,47 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
       setError("Bitte Kapitel und Frage ausfüllen.");
       return;
     }
-    setSaving(true);
     const payload = buildPayload();
-    const { error } = await sb.from("questions").insert({
+    if (type === "sc" && (payload.options.length < 2 || payload.correctIndex < 0)) {
+      setError("Bitte mindestens 2 Antwortoptionen ausfüllen und eine davon als richtig markieren.");
+      return;
+    }
+    if (type === "ms" && (payload.options.length < 2 || payload.correctIndices.length < 1)) {
+      setError("Bitte mindestens 2 Antwortoptionen ausfüllen und mindestens eine als richtig ankreuzen.");
+      return;
+    }
+    if (type === "tfm" && payload.statements.length < 1) {
+      setError("Bitte mindestens eine Teilaussage ausfüllen.");
+      return;
+    }
+    if (type === "matching" && payload.pairs.length < 2) {
+      setError("Bitte mindestens zwei vollständige Paare ausfüllen.");
+      return;
+    }
+    setSaving(true);
+    const fields = {
       chapter_code: chapterCode,
       type,
       prompt: prompt.trim(),
       image: image.trim() || null,
       explanation: explanation.trim(),
       payload,
-      created_by: userId,
-    });
+    };
+    if (editing) {
+      const { data, error } = await sb.from("questions").update(fields).eq("id", editing.question.id).select();
+      setSaving(false);
+      if (error) {
+        setError("Speichern fehlgeschlagen: " + error.message);
+        return;
+      }
+      if (!data || data.length === 0) {
+        setError("Die Änderung wurde nicht gespeichert (fehlende Berechtigung?).");
+        return;
+      }
+      onDone();
+      return;
+    }
+    const { error } = await sb.from("questions").insert({ ...fields, created_by: userId });
     setSaving(false);
     if (error) {
       setError("Speichern fehlgeschlagen: " + error.message);
@@ -980,9 +1049,27 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
     onDone();
   }
 
+  async function remove() {
+    if (!editing) return;
+    if (!window.confirm("Diese Frage wirklich endgültig löschen?\n\nDer Lernfortschritt zu dieser Frage geht dabei ebenfalls verloren.")) return;
+    setError("");
+    setSaving(true);
+    const { data, error } = await sb.from("questions").delete().eq("id", editing.question.id).select();
+    setSaving(false);
+    if (error) {
+      setError("Löschen fehlgeschlagen: " + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      setError("Die Frage wurde nicht gelöscht (fehlende Berechtigung?).");
+      return;
+    }
+    onDone();
+  }
+
   return (
     <div className="fdv-card">
-      <span className="fdv-type-tag">Neue Frage</span>
+      <span className="fdv-type-tag">{editing ? "Frage bearbeiten" : "Neue Frage"}</span>
       <form onSubmit={submit}>
         <label className="fdv-label">Kapitel</label>
         <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
@@ -1141,9 +1228,14 @@ function AddQuestionScreen({ chapters, userId, onDone, onCancel }) {
         <div className="fdv-form-actions">
           <button type="button" className="fdv-result-btn" onClick={onCancel}>Abbrechen</button>
           <button type="submit" className="fdv-result-btn primary" disabled={saving}>
-            {saving ? "Speichern …" : "Frage speichern"}
+            {saving ? "Speichern …" : (editing ? "Änderungen speichern" : "Frage speichern")}
           </button>
         </div>
+        {editing && (
+          <button type="button" className="fdv-result-btn warn fdv-delete-btn" disabled={saving} onClick={remove}>
+            Frage löschen
+          </button>
+        )}
       </form>
     </div>
   );
@@ -1157,6 +1249,7 @@ function FdvTrainerCloud() {
   const [progress, setProgress] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editingQ, setEditingQ] = useState(null);
   const [screen, setScreen] = useState("home");
   const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
@@ -1258,6 +1351,14 @@ function FdvTrainerCloud() {
       loadQuestion(session_.questions[nextIndex]);
     }
   }
+  function startEdit(qId) {
+    const chapter = chapters.find((c) => c.questions.some((x) => x.id === qId));
+    const question = chapter && chapter.questions.find((x) => x.id === qId);
+    if (!question) return;
+    setEditingQ({ question, chapterCode: chapter.code });
+    setScreen("edit");
+  }
+
   function goHome() {
     setSessionQuiz(null);
     setDraft(null);
@@ -1378,6 +1479,26 @@ function FdvTrainerCloud() {
         </>
       )}
 
+      {screen === "edit" && isAdmin && editingQ && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen(session_ ? "quiz" : "home")}>Zurück</button>
+            <span className="fdv-quiz-title">Frage bearbeiten</span>
+          </div>
+          <AddQuestionScreen
+            chapters={chapters}
+            userId={session.user.id}
+            editing={editingQ}
+            onCancel={() => setScreen(session_ ? "quiz" : "home")}
+            onDone={async () => {
+              await loadData(session.user.id);
+              setEditingQ(null);
+              goHome();
+            }}
+          />
+        </>
+      )}
+
       {screen === "quiz" && session_ && (
         <>
           <div className="fdv-quiz-top">
@@ -1406,7 +1527,14 @@ function FdvTrainerCloud() {
             </div>
           ) : (
             <div className="fdv-card">
-              <span className="fdv-type-tag">{TYPE_LABEL[currentQ.type] || currentQ.type}</span>
+              <div className="fdv-card-head">
+                <span className="fdv-type-tag">{TYPE_LABEL[currentQ.type] || currentQ.type}</span>
+                {isAdmin && (
+                  <button type="button" className="fdv-link-btn" onClick={() => startEdit(currentQ.id)}>
+                    Bearbeiten
+                  </button>
+                )}
+              </div>
               {currentQ.image && (
                 <img className="fdv-question-image" src={currentQ.image} alt="" onError={(e) => { e.target.style.display = "none"; }} />
               )}
