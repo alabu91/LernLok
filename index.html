@@ -492,6 +492,17 @@
         }
         .fdv-link-btn:hover { color: var(--text); }
         .fdv-delete-btn { width: 100%; margin-top: 10px; }
+        .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .fdv-trash-item {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+        }
+        .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+        .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
+        .fdv-trash-item .fdv-form-actions { margin-top: 0; }
         .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
         .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
         .fdv-prev-btn {
@@ -1064,10 +1075,10 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
 
   async function remove() {
     if (!editing) return;
-    if (!window.confirm("Diese Frage wirklich endgültig löschen?\n\nDer Lernfortschritt zu dieser Frage geht dabei ebenfalls verloren.")) return;
+    if (!window.confirm("Diese Frage in den Papierkorb verschieben?\n\nSie erscheint dann nicht mehr im Training, kann aber im Papierkorb wiederhergestellt werden.")) return;
     setError("");
     setSaving(true);
-    const { data, error } = await sb.from("questions").delete().eq("id", editing.question.id).select();
+    const { data, error } = await sb.from("questions").update({ deleted_at: new Date().toISOString() }).eq("id", editing.question.id).select();
     setSaving(false);
     if (error) {
       setError("Löschen fehlgeschlagen: " + error.message);
@@ -1246,10 +1257,80 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
         </div>
         {editing && (
           <button type="button" className="fdv-result-btn warn fdv-delete-btn" disabled={saving} onClick={remove}>
-            Frage löschen
+            In Papierkorb verschieben
           </button>
         )}
       </form>
+    </div>
+  );
+}
+
+// ---- Admin screen: trash / restore soft-deleted questions ----
+function TrashScreen({ onCancel, onRestored }) {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  const load = useCallback(async () => {
+    const { data, error } = await sb
+      .from("questions")
+      .select("*")
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) setError("Laden fehlgeschlagen: " + error.message);
+    setItems(data || []);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function restore(id) {
+    setBusyId(id);
+    const { error } = await sb.from("questions").update({ deleted_at: null }).eq("id", id);
+    setBusyId(null);
+    if (error) { setError("Wiederherstellen fehlgeschlagen: " + error.message); return; }
+    await load();
+    onRestored();
+  }
+
+  async function purge(id) {
+    if (!window.confirm("Endgültig löschen? Das kann nicht mehr rückgängig gemacht werden.")) return;
+    setBusyId(id);
+    const { error } = await sb.from("questions").delete().eq("id", id);
+    setBusyId(null);
+    if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
+    await load();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Papierkorb</span>
+      {error && <div className="fdv-form-error">{error}</div>}
+      {items === null && <p className="fdv-sub">Lädt …</p>}
+      {items && items.length === 0 && <p className="fdv-sub">Der Papierkorb ist leer.</p>}
+      {items && items.length > 0 && (
+        <div className="fdv-trash-list">
+          {items.map((row) => (
+            <div className="fdv-trash-item" key={row.id}>
+              <div className="fdv-trash-meta">
+                <span className="fdv-type-tag">{TYPE_LABEL[row.type] || row.type}</span>
+                <span className="fdv-trash-chapter">{row.chapter_code}</span>
+              </div>
+              <div className="fdv-trash-prompt">{row.prompt}</div>
+              <div className="fdv-form-actions">
+                <button type="button" className="fdv-result-btn" disabled={busyId === row.id} onClick={() => purge(row.id)}>
+                  Endgültig löschen
+                </button>
+                <button type="button" className="fdv-result-btn primary" disabled={busyId === row.id} onClick={() => restore(row.id)}>
+                  Wiederherstellen
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
     </div>
   );
 }
@@ -1282,7 +1363,7 @@ function FdvTrainerCloud() {
   const loadData = useCallback(async (userId) => {
     setDataLoaded(false);
     const { data: chapterRows } = await sb.from("chapters").select("*").order("sort_order").order("code");
-    const { data: questionRows } = await sb.from("questions").select("*");
+    const { data: questionRows } = await sb.from("questions").select("*").is("deleted_at", null);
     const { data: progressRows } = await sb.from("progress").select("*").eq("user_id", userId);
     const { data: adminRow } = await sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle();
 
@@ -1463,6 +1544,9 @@ function FdvTrainerCloud() {
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
           )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("trash")}>🗑 Papierkorb</button>
+          )}
 
           <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
@@ -1511,6 +1595,19 @@ function FdvTrainerCloud() {
           <AddUserScreen
             accessToken={session.access_token}
             onCancel={() => setScreen("home")}
+          />
+        </>
+      )}
+
+      {screen === "trash" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Papierkorb</span>
+          </div>
+          <TrashScreen
+            onCancel={() => setScreen("home")}
+            onRestored={() => loadData(session.user.id)}
           />
         </>
       )}
