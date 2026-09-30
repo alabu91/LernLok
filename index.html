@@ -15,553 +15,302 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <style>
   html, body { margin: 0; padding: 0; background: #f2f3f3; }
+  *, *::before, *::after { box-sizing: border-box; }
   #root { min-height: 100vh; }
 
-        .fdv-app {
-          --bg: #f2f3f3;
-          --panel: #ffffff;
-          --panel-border: #dcdedd;
-          --panel-alt: #f6f7f7;
-          --text: #231f20;
-          --text-dim: #75767a;
-          --green: #75c93b;
-          --green-dark: #5aa32b;
-          --green-dim: #eaf7de;
-          --red: #d1453f;
-          --red-dim: #fbebea;
-          --amber: #c98a2b;
-          --amber-dim: #f7ecdb;
-          --grey: #888687;
-          --grey-dark: #58585a;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          background: var(--bg);
-          color: var(--text);
-          min-height: 100%;
-          width: 100%;
-          box-sizing: border-box;
-          padding: 20px 16px 40px;
-          max-width: 640px;
-          margin: 0 auto;
-        }
-        .fdv-app * { box-sizing: border-box; }
-        .fdv-header {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          margin-bottom: 4px;
-        }
-        .fdv-title {
-          font-size: 22px;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          margin: 0;
-        }
-        .fdv-sub {
-          color: var(--text-dim);
-          font-size: 13px;
-          margin: 2px 0 20px;
-        }
-        .fdv-railline {
-          height: 3px;
-          background: repeating-linear-gradient(
-            90deg,
-            var(--panel-border) 0px,
-            var(--panel-border) 10px,
-            transparent 10px,
-            transparent 16px
-          );
-          margin-bottom: 20px;
-          border-radius: 2px;
-        }
-        .fdv-training-row {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 22px;
-        }
-        .fdv-training-btn {
-          flex: 1;
-          background: var(--panel);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 14px 12px;
-          color: var(--text);
-          text-align: left;
-          cursor: pointer;
-          font-size: 13px;
-          transition: border-color 0.15s ease, transform 0.1s ease;
-        }
-        .fdv-training-btn:active { transform: scale(0.98); }
-        .fdv-training-btn:hover { border-color: var(--green); }
-        .fdv-training-btn.disabled {
-          opacity: 0.45;
-          cursor: default;
-          pointer-events: none;
-        }
-        .fdv-training-btn .label {
-          display: block;
-          font-weight: 600;
-          font-size: 14px;
-          margin-bottom: 3px;
-        }
-        .fdv-training-btn .meta {
-          color: var(--text-dim);
-          font-size: 12px;
-          font-variant-numeric: tabular-nums;
-        }
-        .fdv-section-label {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--text-dim);
-          margin: 24px 0 8px;
-        }
-        .fdv-chapter-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
-          background: var(--panel-border);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          overflow: hidden;
-        }
-        .fdv-chapter-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: var(--panel);
-          padding: 13px 14px;
-          cursor: pointer;
-          border: none;
-          width: 100%;
-          text-align: left;
-          color: var(--text);
-          font-size: 14px;
-        }
-        .fdv-chapter-row:hover { background: var(--panel-alt); }
-        .fdv-chapter-code {
-          font-variant-numeric: tabular-nums;
-          font-weight: 700;
-          font-size: 13px;
-          color: var(--text-dim);
-          width: 46px;
-          flex-shrink: 0;
-        }
-        .fdv-chapter-title {
-          flex: 1;
-          font-size: 14px;
-        }
-        .fdv-mastery {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          flex-shrink: 0;
-        }
-        .fdv-mastery-dot {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .fdv-mastery-text {
-          font-size: 11px;
-          color: var(--text-dim);
-          font-variant-numeric: tabular-nums;
-          min-width: 34px;
-          text-align: right;
-        }
-        /* Quiz screen */
-        .fdv-quiz-top {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 14px;
-        }
-        .fdv-back-btn {
-          background: none;
-          border: 1px solid var(--panel-border);
-          color: var(--text-dim);
-          border-radius: 5px;
-          padding: 6px 10px;
-          font-size: 12px;
-          cursor: pointer;
-        }
-        .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
-        .fdv-quiz-title {
-          font-size: 13px;
-          color: var(--text-dim);
-          flex: 1;
-        }
-        .fdv-progress-track {
-          display: flex;
-          gap: 3px;
-          margin-bottom: 18px;
-        }
-        .fdv-progress-tick {
-          height: 4px;
-          flex: 1;
-          border-radius: 2px;
-          background: var(--panel-border);
-        }
-        .fdv-progress-tick.current { background: var(--grey-dark); }
-        .fdv-progress-tick.correct { background: var(--green); }
-        .fdv-progress-tick.wrong { background: var(--red); }
-        .fdv-card {
-          background: var(--panel);
-          border: 1px solid var(--panel-border);
-          border-radius: 8px;
-          padding: 20px 18px;
-        }
-        .fdv-type-tag {
-          display: inline-block;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--grey-dark);
-          border: 1px solid var(--grey);
-          border-radius: 10px;
-          padding: 2px 8px;
-          margin-bottom: 10px;
-        }
-        .fdv-question-image {
-          display: block;
-          width: auto;
-          max-width: 45%;
-          max-height: 120px;
-          object-fit: contain;
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          margin: 0 auto 14px;
-        }
-        .fdv-question {
-          font-size: 17px;
-          font-weight: 600;
-          line-height: 1.4;
-          margin: 0 0 18px;
-        }
-        .fdv-options {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .fdv-options-row {
-          flex-direction: row;
-        }
-        .fdv-option {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 12px 14px;
-          color: var(--text);
-          font-size: 14px;
-          text-align: left;
-          cursor: pointer;
-          line-height: 1.35;
-        }
-        .fdv-option-tf { flex: 1; justify-content: center; }
-        .fdv-option:hover:not(.locked) { border-color: var(--grey); }
-        .fdv-option.picked { border-color: var(--grey-dark); }
-        .fdv-option.locked { cursor: default; }
-        .fdv-option.correct-answer {
-          border-color: var(--green);
-          background: var(--green-dim);
-        }
-        .fdv-option.wrong-answer {
-          border-color: var(--red);
-          background: var(--red-dim);
-        }
-        .fdv-option-light {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          border: 2px solid var(--panel-border);
-          flex-shrink: 0;
-        }
-        .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
-        .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
-        .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
-        .fdv-checkbox-box {
-          width: 16px;
-          height: 16px;
-          border-radius: 3px;
-          border: 2px solid var(--panel-border);
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          color: #ffffff;
-        }
-        .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
-        .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
-        .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
-        /* TFM table */
-        .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
-        .fdv-tfm-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 10px 12px;
-        }
-        .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
-        .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
-        .fdv-tfm-pill {
-          border: 1px solid var(--panel-border);
-          background: var(--panel);
-          color: var(--text);
-          border-radius: 5px;
-          padding: 7px 10px;
-          font-size: 12px;
-          cursor: pointer;
-        }
-        .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
-        .fdv-tfm-pill.locked { cursor: default; }
-        .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
-        .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
-        /* Matching */
-        .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
-        .fdv-matching-row {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 8px;
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 10px 12px;
-        }
-        .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
-        .fdv-matching-select {
-          flex: 1;
-          min-width: 140px;
-          background: var(--panel);
-          color: var(--text);
-          border: 1px solid var(--panel-border);
-          border-radius: 5px;
-          padding: 8px 8px;
-          font-size: 13px;
-        }
-        .fdv-matching-select.correct-answer { border-color: var(--green); }
-        .fdv-matching-select.wrong-answer { border-color: var(--red); }
-        .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
-        .fdv-check-btn {
-          margin-top: 18px;
-          width: 100%;
-          background: var(--panel-border);
-          color: var(--text);
-          border: none;
-          border-radius: 6px;
-          padding: 13px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
-        .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
-        .fdv-explanation {
-          margin-top: 16px;
-          padding-top: 14px;
-          border-top: 1px solid var(--panel-border);
-          font-size: 13px;
-          color: var(--text-dim);
-          line-height: 1.5;
-        }
-        .fdv-explanation strong { color: var(--text); }
-        .fdv-next-btn {
-          margin-top: 18px;
-          width: 100%;
-          background: var(--green);
-          color: var(--text);
-          border: none;
-          border-radius: 6px;
-          padding: 13px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .fdv-next-btn:hover { filter: brightness(1.08); }
-        /* Result screen */
-        .fdv-result-score {
-          font-size: 44px;
-          font-weight: 800;
-          font-variant-numeric: tabular-nums;
-          margin: 6px 0 2px;
-        }
-        .fdv-result-sub {
-          color: var(--text-dim);
-          font-size: 14px;
-          margin-bottom: 24px;
-        }
-        .fdv-result-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .fdv-result-btn {
-          border-radius: 6px;
-          padding: 13px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          border: 1px solid var(--panel-border);
-          background: var(--panel);
-          color: var(--text);
-        }
-        .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
-        .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
-              /* Login + form additions */
-        .fdv-login-wrap {
-          max-width: 380px;
-          margin: 60px auto 0;
-        }
-        .fdv-login-card {
-          margin-top: 16px;
-        }
-        .fdv-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-dim);
-          margin: 14px 0 5px;
-        }
-        .fdv-label:first-child { margin-top: 0; }
-        .fdv-input {
-          width: 100%;
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 10px 11px;
-          font-size: 14px;
-          color: var(--text);
-          font-family: inherit;
-        }
-        .fdv-input-narrow { width: auto; flex-shrink: 0; }
-        .fdv-form-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-        .fdv-form-row .fdv-input { flex: 1; }
-        .fdv-form-error {
-          color: var(--red);
-          font-size: 13px;
-          margin-top: 10px;
-        }
-        .fdv-form-actions {
-          display: flex;
-          gap: 10px;
-          margin-top: 18px;
-        }
-        .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
-        .fdv-add-btn {
-          width: 100%;
-          background: var(--panel);
-          border: 1px dashed var(--grey);
-          border-radius: 6px;
-          padding: 12px;
-          color: var(--grey-dark);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          margin-bottom: 22px;
-        }
-        .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
-        .fdv-card-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-        }
-        .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
-        .fdv-link-btn {
-          background: none;
-          border: none;
-          padding: 4px 0;
-          font-size: 12px;
-          color: var(--grey-dark);
-          text-decoration: underline;
-          cursor: pointer;
-        }
-        .fdv-link-btn:hover { color: var(--text); }
-        .fdv-delete-btn { width: 100%; margin-top: 10px; }
-        .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-        .fdv-trash-item {
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          border-radius: 6px;
-          padding: 12px 14px;
-        }
-        .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-        .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
-        .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
-        .fdv-trash-item .fdv-form-actions { margin-top: 0; }
-        .fdv-offline-banner {
-          background: var(--amber-dim);
-          border: 1px solid var(--amber);
-          color: var(--text);
-          border-radius: 6px;
-          padding: 10px 12px;
-          font-size: 12.5px;
-          line-height: 1.4;
-          margin-bottom: 16px;
-        }
-        .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
-        .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
-        .fdv-prev-btn {
-          background: var(--panel-alt);
-          border: 1px solid var(--panel-border);
-          color: var(--text);
-          border-radius: 6px;
-          padding: 13px 16px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-        .fdv-prev-btn:hover { border-color: var(--grey); }
-
+  .fdv-app {
+    --bg: #f2f3f3;
+    --panel: #ffffff;
+    --panel-border: #dcdedd;
+    --panel-alt: #f6f7f7;
+    --text: #231f20;
+    --text-dim: #75767a;
+    --green: #75c93b;
+    --green-dark: #5aa32b;
+    --green-dim: #eaf7de;
+    --red: #d1453f;
+    --red-dim: #fbebea;
+    --amber: #c98a2b;
+    --amber-dim: #f7ecdb;
+    --grey: #888687;
+    --grey-dark: #58585a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100%;
+    width: 100%;
+    padding: 20px 16px 40px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .fdv-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .fdv-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .fdv-sub { color: var(--text-dim); font-size: 13px; margin: 2px 0 20px; }
+  .fdv-railline {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--panel-border) 0px, var(--panel-border) 10px, transparent 10px, transparent 16px);
+    margin-bottom: 20px; border-radius: 2px;
+  }
+  .fdv-training-row { display: flex; gap: 10px; margin-bottom: 22px; }
+  .fdv-training-btn {
+    flex: 1; background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius: 6px; padding: 14px 12px; color: var(--text); text-align: left;
+    cursor: pointer; font-size: 13px; transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .fdv-training-btn:active { transform: scale(0.98); }
+  .fdv-training-btn:hover { border-color: var(--green); }
+  .fdv-training-btn.disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+  .fdv-training-btn .label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .fdv-training-btn .meta { color: var(--text-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .fdv-section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); margin: 24px 0 8px;
+  }
+  .fdv-chapter-list {
+    display: flex; flex-direction: column; gap: 1px;
+    background: var(--panel-border); border: 1px solid var(--panel-border);
+    border-radius: 6px; overflow: hidden;
+  }
+  .fdv-chapter-row {
+    display: flex; align-items: center; gap: 12px; background: var(--panel);
+    padding: 13px 14px; cursor: pointer; border: none; width: 100%;
+    text-align: left; color: var(--text); font-size: 14px;
+  }
+  .fdv-chapter-row:hover { background: var(--panel-alt); }
+  .fdv-chapter-code {
+    font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13px;
+    color: var(--text-dim); width: 46px; flex-shrink: 0;
+  }
+  .fdv-chapter-title { flex: 1; font-size: 14px; }
+  .fdv-mastery { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .fdv-mastery-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .fdv-mastery-text {
+    font-size: 11px; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; min-width: 34px; text-align: right;
+  }
+  .fdv-quiz-top { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .fdv-back-btn {
+    background: none; border: 1px solid var(--panel-border); color: var(--text-dim);
+    border-radius: 5px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+  }
+  .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .fdv-quiz-title { font-size: 13px; color: var(--text-dim); flex: 1; }
+  .fdv-progress-track { display: flex; gap: 3px; margin-bottom: 18px; }
+  .fdv-progress-tick { height: 4px; flex: 1; border-radius: 2px; background: var(--panel-border); }
+  .fdv-progress-tick.current { background: var(--grey-dark); }
+  .fdv-progress-tick.correct { background: var(--green); }
+  .fdv-progress-tick.wrong { background: var(--red); }
+  .fdv-card {
+    background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius: 8px; padding: 20px 18px;
+  }
+  .fdv-type-tag {
+    display: inline-block; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--grey-dark); border: 1px solid var(--grey);
+    border-radius: 10px; padding: 2px 8px; margin-bottom: 10px;
+  }
+  .fdv-question-image {
+    display: block; width: auto; max-width: 45%; max-height: 120px;
+    object-fit: contain; background: var(--panel-alt);
+    border: 1px solid var(--panel-border); border-radius: 6px;
+    margin: 0 auto 14px;
+  }
+  .fdv-question { font-size: 17px; font-weight: 600; line-height: 1.4; margin: 0 0 18px; }
+  .fdv-options { display: flex; flex-direction: column; gap: 8px; }
+  .fdv-options-row { flex-direction: row; }
+  .fdv-option {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel-alt); border: 1px solid var(--panel-border);
+    border-radius: 6px; padding: 12px 14px; color: var(--text);
+    font-size: 14px; text-align: left; cursor: pointer; line-height: 1.35;
+  }
+  .fdv-option-tf { flex: 1; justify-content: center; }
+  .fdv-option:hover:not(.locked) { border-color: var(--grey); }
+  .fdv-option.picked { border-color: var(--grey-dark); }
+  .fdv-option.locked { cursor: default; }
+  .fdv-option.correct-answer { border-color: var(--green); background: var(--green-dim); }
+  .fdv-option.wrong-answer { border-color: var(--red); background: var(--red-dim); }
+  .fdv-option-light {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--panel-border); flex-shrink: 0;
+  }
+  .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
+  .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
+  .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
+  .fdv-checkbox-box {
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid var(--panel-border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #ffffff;
+  }
+  .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
+  .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
+  .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
+  .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
+  .fdv-tfm-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; background: var(--panel-alt);
+    border: 1px solid var(--panel-border); border-radius: 6px; padding: 10px 12px;
+  }
+  .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
+  .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
+  .fdv-tfm-pill {
+    border: 1px solid var(--panel-border); background: var(--panel);
+    color: var(--text); border-radius: 5px; padding: 7px 10px;
+    font-size: 12px; cursor: pointer;
+  }
+  .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
+  .fdv-tfm-pill.locked { cursor: default; }
+  .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+  .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
+  .fdv-matching-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    background: var(--panel-alt); border: 1px solid var(--panel-border);
+    border-radius: 6px; padding: 10px 12px;
+  }
+  .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
+  .fdv-matching-select {
+    flex: 1; min-width: 140px; background: var(--panel); color: var(--text);
+    border: 1px solid var(--panel-border); border-radius: 5px;
+    padding: 8px 8px; font-size: 13px;
+  }
+  .fdv-matching-select.correct-answer { border-color: var(--green); }
+  .fdv-matching-select.wrong-answer { border-color: var(--red); }
+  .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
+  .fdv-check-btn {
+    margin-top: 18px; width: 100%; background: var(--panel-border);
+    color: var(--text); border: none; border-radius: 6px;
+    padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
+  .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
+  .fdv-explanation {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--panel-border);
+    font-size: 13px; color: var(--text-dim); line-height: 1.5;
+  }
+  .fdv-explanation strong { color: var(--text); }
+  .fdv-next-btn {
+    margin-top: 18px; width: 100%; background: var(--green); color: var(--text);
+    border: none; border-radius: 6px; padding: 13px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .fdv-next-btn:hover { filter: brightness(1.08); }
+  .fdv-result-score {
+    font-size: 44px; font-weight: 800;
+    font-variant-numeric: tabular-nums; margin: 6px 0 2px;
+  }
+  .fdv-result-sub { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+  .fdv-result-actions { display: flex; flex-direction: column; gap: 10px; }
+  .fdv-result-btn {
+    border-radius: 6px; padding: 13px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--panel-border);
+    background: var(--panel); color: var(--text);
+  }
+  .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
+  .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
+  .fdv-login-wrap { max-width: 380px; margin: 60px auto 0; }
+  .fdv-login-card { margin-top: 16px; }
+  .fdv-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-dim); margin: 14px 0 5px;
+  }
+  .fdv-label:first-child { margin-top: 0; }
+  .fdv-input {
+    width: 100%; background: var(--panel-alt); border: 1px solid var(--panel-border);
+    border-radius: 6px; padding: 10px 11px; font-size: 14px;
+    color: var(--text); font-family: inherit;
+  }
+  .fdv-input-narrow { width: auto; flex-shrink: 0; }
+  .fdv-form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .fdv-form-row .fdv-input { flex: 1; }
+  .fdv-form-error { color: var(--red); font-size: 13px; margin-top: 10px; }
+  .fdv-form-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
+  .fdv-add-btn {
+    width: 100%; background: var(--panel); border: 1px dashed var(--grey);
+    border-radius: 6px; padding: 12px; color: var(--grey-dark);
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 22px;
+  }
+  .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+  .fdv-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
+  .fdv-link-btn {
+    background: none; border: none; padding: 4px 0; font-size: 12px;
+    color: var(--grey-dark); text-decoration: underline; cursor: pointer;
+  }
+  .fdv-link-btn:hover { color: var(--text); }
+  .fdv-delete-btn { width: 100%; margin-top: 10px; }
+  .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .fdv-trash-item {
+    background: var(--panel-alt); border: 1px solid var(--panel-border);
+    border-radius: 6px; padding: 12px 14px;
+  }
+  .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+  .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
+  .fdv-trash-item .fdv-form-actions { margin-top: 0; }
+  .fdv-offline-banner {
+    background: var(--amber-dim); border: 1px solid var(--amber);
+    color: var(--text); border-radius: 6px; padding: 10px 12px;
+    font-size: 12.5px; line-height: 1.4; margin-bottom: 16px;
+  }
+  .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
+  .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
+  .fdv-prev-btn {
+    background: var(--panel-alt); border: 1px solid var(--panel-border);
+    color: var(--text); border-radius: 6px; padding: 13px 16px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .fdv-prev-btn:hover { border-color: var(--grey); }
 </style>
 </head>
 <body>
 <div id="root"></div>
 
+<script>
+  // Promise, das aufgelöst wird, sobald der Supabase-Client bereitsteht.
+  // Verhindert Race Conditions, falls das ESM-Modul langsam lädt.
+  window.__sbReady = new Promise(function (resolve) { window.__sbReadyResolve = resolve; });
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   window.sb = createClient(
     "https://nsidzovmagohzuwvikev.supabase.co",
     "sb_publishable_Z5H4qhw4pkVjO27eqG9aBQ_0w6RwTyN"
   );
+  window.__sbReadyResolve(window.sb);
 </script>
+
 <script>
-  window.addEventListener('error', function (e) {
+  // Globaler Fallback: greift, solange React noch nichts gerendert hat
+  // (z. B. wenn ein Script oder das Supabase-Modul nicht lädt).
+  function showFatal(msg) {
     var root = document.getElementById('root');
     if (root && !root.hasChildNodes()) {
-      root.innerHTML = '<pre style="padding:20px;color:#c0392b;font-family:monospace;white-space:pre-wrap;">Fehler beim Laden der App:\n' + (e.message || e) + '</pre>';
+      root.innerHTML = '<pre style="padding:20px;color:#c0392b;font-family:monospace;white-space:pre-wrap;">Fehler beim Laden der App:\n' + String(msg) + '</pre>';
     }
+  }
+  window.addEventListener('error', function (e) { showFatal(e.message || e); });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason;
+    showFatal(r && r.message ? r.message : (r || 'Unbekannter Fehler'));
   });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {
-        // Kein Offline-Modus verfügbar, aber die App funktioniert online trotzdem normal weiter.
-      });
+      navigator.serviceWorker.register('sw.js').catch(function () {});
     });
   }
 </script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, useCallback } = React;
-
-const sb = window.sb;
 
 const TYPE_LABEL = {
   sc: "Single Choice",
@@ -579,10 +328,7 @@ function shuffledCopy(arr) {
   }
   return a;
 }
-
-function shuffledIndices(n) {
-  return shuffledCopy(Array.from({ length: n }, (_, i) => i));
-}
+function shuffledIndices(n) { return shuffledCopy(Array.from({ length: n }, (_, i) => i)); }
 
 function randomizeQuestion(q) {
   if (q.type === "sc") {
@@ -597,25 +343,21 @@ function randomizeQuestion(q) {
       correctIndices: q.correctIndices.map((ci) => order.indexOf(ci)),
     };
   }
-  if (q.type === "tfm") {
-    return { ...q, statements: shuffledCopy(q.statements) };
-  }
-  if (q.type === "matching") {
-    return { ...q, pairs: shuffledCopy(q.pairs) };
-  }
+  if (q.type === "tfm") return { ...q, statements: shuffledCopy(q.statements) };
+  if (q.type === "matching") return { ...q, pairs: shuffledCopy(q.pairs) };
   return q;
 }
 
 function chapterStats(chapter, progress) {
   let attempted = 0;
   let correct = 0;
-  chapter.questions.forEach((q) => {
+  for (const q of chapter.questions) {
     const p = progress[q.id];
     if (p) {
       attempted += 1;
       if (p.last_correct) correct += 1;
     }
-  });
+  }
   return { attempted, correct, total: chapter.questions.length };
 }
 
@@ -628,7 +370,6 @@ function masteryColor(stats) {
   return "var(--red)";
 }
 
-// row from Supabase `questions` table -> app-shaped question object
 function rowToQuestion(row) {
   const base = {
     id: row.id,
@@ -640,7 +381,7 @@ function rowToQuestion(row) {
   return { ...base, ...row.payload };
 }
 
-// ---- draft helpers ----
+// ---- Draft-Helfer ----
 function initDraft(q) {
   if (q.type === "sc") return { selected: null };
   if (q.type === "tf") return { selected: null };
@@ -669,7 +410,62 @@ function isDraftCorrect(q, draft) {
   return false;
 }
 
-// ---- per-type interactive renderers ----
+// ---- Offline-Queue für Fortschritt ----
+function pendingKey(userId) { return "lernlok-pending-" + userId; }
+function readPending(userId) {
+  try { return JSON.parse(localStorage.getItem(pendingKey(userId)) || "[]"); }
+  catch (e) { return []; }
+}
+function queuePending(userId, row) {
+  const q = readPending(userId).filter((r) => r.question_id !== row.question_id);
+  q.push(row);
+  try { localStorage.setItem(pendingKey(userId), JSON.stringify(q)); } catch (e) {}
+}
+async function flushPending(sb, userId) {
+  const q = readPending(userId);
+  if (!q.length) return;
+  const remaining = [];
+  for (const row of q) {
+    const { error } = await sb.from("progress").upsert(row);
+    if (error) remaining.push(row);
+  }
+  try {
+    if (remaining.length) localStorage.setItem(pendingKey(userId), JSON.stringify(remaining));
+    else localStorage.removeItem(pendingKey(userId));
+  } catch (e) {}
+}
+
+// ---- Fehlergrenze ----
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) { console.error("LernLok error:", error, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="fdv-app">
+          <h1 className="fdv-title">Etwas ist schiefgelaufen</h1>
+          <p className="fdv-sub">Bitte lade die Seite neu. Falls das Problem bleibt, wende dich an die Administration.</p>
+          <div className="fdv-card">
+            <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, color: "var(--text-dim)", margin: 0 }}>
+              {String((this.state.error && this.state.error.message) || this.state.error)}
+            </pre>
+            <button
+              className="fdv-result-btn primary"
+              style={{ marginTop: 12, width: "100%" }}
+              onClick={() => window.location.reload()}
+            >
+              Neu laden
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ---- Frage-Renderer ----
 function ScQuestion({ q, draft, setDraft, revealed }) {
   return (
     <div className="fdv-options">
@@ -714,7 +510,9 @@ function TfQuestion({ q, draft, setDraft, revealed }) {
 function MsQuestion({ q, draft, setDraft, revealed }) {
   function toggle(idx) {
     if (revealed) return;
-    const set = draft.selectedSet.includes(idx) ? draft.selectedSet.filter((i) => i !== idx) : [...draft.selectedSet, idx];
+    const set = draft.selectedSet.includes(idx)
+      ? draft.selectedSet.filter((i) => i !== idx)
+      : [...draft.selectedSet, idx];
     setDraft({ selectedSet: set });
   }
   return (
@@ -813,7 +611,7 @@ function QuestionBody({ q, draft, setDraft, revealed }) {
   return null;
 }
 
-// ---- Forced password change screen (shown after first login with a temp password) ----
+// ---- Passwortwechsel ----
 function ForcePasswordChangeScreen({ onDone }) {
   const [pw1, setPw1] = useState("");
   const [pw2, setPw2] = useState("");
@@ -823,24 +621,15 @@ function ForcePasswordChangeScreen({ onDone }) {
   async function submit(e) {
     e.preventDefault();
     setError("");
-    if (pw1.length < 6) {
-      setError("Das Passwort muss mindestens 6 Zeichen haben.");
-      return;
-    }
-    if (pw1 !== pw2) {
-      setError("Die beiden Passwörter stimmen nicht überein.");
-      return;
-    }
+    if (pw1.length < 6) { setError("Das Passwort muss mindestens 6 Zeichen haben."); return; }
+    if (pw1 !== pw2) { setError("Die beiden Passwörter stimmen nicht überein."); return; }
     setBusy(true);
-    const { error: updErr } = await sb.auth.updateUser({
+    const { error: updErr } = await window.sb.auth.updateUser({
       password: pw1,
       data: { must_change_password: false },
     });
     setBusy(false);
-    if (updErr) {
-      setError("Fehler beim Setzen des Passworts: " + updErr.message);
-      return;
-    }
+    if (updErr) { setError("Fehler beim Setzen des Passworts: " + updErr.message); return; }
     onDone();
   }
 
@@ -864,7 +653,7 @@ function ForcePasswordChangeScreen({ onDone }) {
   );
 }
 
-// ---- Admin screen: create a new user with a temporary password ----
+// ---- Nutzer anlegen ----
 function AddUserScreen({ accessToken, onCancel }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -884,20 +673,12 @@ function AddUserScreen({ accessToken, onCancel }) {
     try {
       const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-create-user", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + accessToken,
-        },
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Unbekannter Fehler beim Erstellen des Nutzers.");
-      } else {
-        setSuccess(data.user.email);
-        setEmail("");
-        setPassword("");
-      }
+      if (!res.ok) setError(data.error || "Unbekannter Fehler beim Erstellen des Nutzers.");
+      else { setSuccess(data.user.email); setEmail(""); setPassword(""); }
     } catch (err) {
       setError("Verbindungsfehler: " + err.message);
     }
@@ -913,7 +694,11 @@ function AddUserScreen({ accessToken, onCancel }) {
         <label className="fdv-label">Temporäres Passwort</label>
         <input className="fdv-input" type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
         {error && <div className="fdv-form-error">{error}</div>}
-        {success && <div className="fdv-explanation"><strong>Erstellt.</strong> {success} kann sich jetzt mit dem temporären Passwort einloggen und muss danach sofort ein eigenes setzen.</div>}
+        {success && (
+          <div className="fdv-explanation">
+            <strong>Erstellt.</strong> {success} kann sich jetzt mit dem temporären Passwort einloggen und muss danach sofort ein eigenes setzen.
+          </div>
+        )}
         <div className="fdv-form-actions">
           <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
           <button type="submit" className="fdv-result-btn primary" disabled={busy}>
@@ -925,7 +710,7 @@ function AddUserScreen({ accessToken, onCancel }) {
   );
 }
 
-// ---- Login screen ----
+// ---- Login ----
 function LoginScreen({ onLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -936,12 +721,9 @@ function LoginScreen({ onLoggedIn }) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) {
-      setError("Login fehlgeschlagen. E-Mail/Passwort prüfen.");
-      return;
-    }
+    if (error) { setError("Login fehlgeschlagen. E-Mail/Passwort prüfen."); return; }
     onLoggedIn(data.session);
   }
 
@@ -968,7 +750,7 @@ function LoginScreen({ onLoggedIn }) {
   );
 }
 
-// ---- Add-question form ----
+// ---- Frage-Formular ----
 function emptyFormForType(type) {
   if (type === "sc") return { options: ["", "", "", ""], correctIndex: 0 };
   if (type === "ms") return { options: ["", "", "", ""], correctFlags: [false, false, false, false] };
@@ -977,14 +759,11 @@ function emptyFormForType(type) {
   if (type === "matching") return { pairs: [{ left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }, { left: "", right: "" }] };
   return {};
 }
-
 function padTo(arr, n, filler) {
   const a = [...arr];
   while (a.length < n) a.push(filler());
   return a;
 }
-
-// Build form state from an existing question (used when editing).
 function formFromQuestion(q) {
   if (q.type === "sc") return { options: padTo(q.options, 4, () => ""), correctIndex: q.correctIndex };
   if (q.type === "ms") {
@@ -1008,6 +787,15 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
   const [error, setError] = useState("");
 
   function changeType(t) {
+    if (t === type) return;
+    const hasContent =
+      prompt.trim() !== "" ||
+      (form.options && form.options.some((o) => o.trim() !== "")) ||
+      (form.statements && form.statements.some((s) => s.text.trim() !== "")) ||
+      (form.pairs && form.pairs.some((p) => p.left.trim() !== "" || p.right.trim() !== ""));
+    if (hasContent && !window.confirm("Fragetyp wechseln? Die bisher eingegebenen Antworten werden dabei zurückgesetzt.")) {
+      return;
+    }
     setType(t);
     setForm(emptyFormForType(t));
   }
@@ -1022,25 +810,16 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       const correctIndices = kept.map((x, k) => (form.correctFlags[x.i] ? k : -1)).filter((k) => k >= 0);
       return { options: kept.map((x) => x.o), correctIndices };
     }
-    if (type === "tf") {
-      return { correct: form.correct };
-    }
-    if (type === "tfm") {
-      return { statements: form.statements.filter((s) => s.text.trim() !== "") };
-    }
-    if (type === "matching") {
-      return { pairs: form.pairs.filter((p) => p.left.trim() !== "" && p.right.trim() !== "") };
-    }
+    if (type === "tf") return { correct: form.correct };
+    if (type === "tfm") return { statements: form.statements.filter((s) => s.text.trim() !== "") };
+    if (type === "matching") return { pairs: form.pairs.filter((p) => p.left.trim() !== "" && p.right.trim() !== "") };
     return {};
   }
 
   async function submit(e) {
     e.preventDefault();
     setError("");
-    if (!chapterCode || !prompt.trim()) {
-      setError("Bitte Kapitel und Frage ausfüllen.");
-      return;
-    }
+    if (!chapterCode || !prompt.trim()) { setError("Bitte Kapitel und Frage ausfüllen."); return; }
     const payload = buildPayload();
     if (type === "sc" && (payload.options.length < 2 || payload.correctIndex < 0)) {
       setError("Bitte mindestens 2 Antwortoptionen ausfüllen und eine davon als richtig markieren.");
@@ -1050,14 +829,9 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       setError("Bitte mindestens 2 Antwortoptionen ausfüllen und mindestens eine als richtig ankreuzen.");
       return;
     }
-    if (type === "tfm" && payload.statements.length < 1) {
-      setError("Bitte mindestens eine Teilaussage ausfüllen.");
-      return;
-    }
-    if (type === "matching" && payload.pairs.length < 2) {
-      setError("Bitte mindestens zwei vollständige Paare ausfüllen.");
-      return;
-    }
+    if (type === "tfm" && payload.statements.length < 1) { setError("Bitte mindestens eine Teilaussage ausfüllen."); return; }
+    if (type === "matching" && payload.pairs.length < 2) { setError("Bitte mindestens zwei vollständige Paare ausfüllen."); return; }
+
     setSaving(true);
     const fields = {
       chapter_code: chapterCode,
@@ -1067,26 +841,18 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       explanation: explanation.trim(),
       payload,
     };
+    const sb = window.sb;
     if (editing) {
       const { data, error } = await sb.from("questions").update(fields).eq("id", editing.question.id).select();
       setSaving(false);
-      if (error) {
-        setError("Speichern fehlgeschlagen: " + error.message);
-        return;
-      }
-      if (!data || data.length === 0) {
-        setError("Die Änderung wurde nicht gespeichert (fehlende Berechtigung?).");
-        return;
-      }
+      if (error) { setError("Speichern fehlgeschlagen: " + error.message); return; }
+      if (!data || data.length === 0) { setError("Die Änderung wurde nicht gespeichert (fehlende Berechtigung?)."); return; }
       onDone();
       return;
     }
     const { error } = await sb.from("questions").insert({ ...fields, created_by: userId });
     setSaving(false);
-    if (error) {
-      setError("Speichern fehlgeschlagen: " + error.message);
-      return;
-    }
+    if (error) { setError("Speichern fehlgeschlagen: " + error.message); return; }
     onDone();
   }
 
@@ -1095,16 +861,10 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
     if (!window.confirm("Diese Frage in den Papierkorb verschieben?\n\nSie erscheint dann nicht mehr im Training, kann aber im Papierkorb wiederhergestellt werden.")) return;
     setError("");
     setSaving(true);
-    const { data, error } = await sb.from("questions").update({ deleted_at: new Date().toISOString() }).eq("id", editing.question.id).select();
+    const { data, error } = await window.sb.from("questions").update({ deleted_at: new Date().toISOString() }).eq("id", editing.question.id).select();
     setSaving(false);
-    if (error) {
-      setError("Löschen fehlgeschlagen: " + error.message);
-      return;
-    }
-    if (!data || data.length === 0) {
-      setError("Die Frage wurde nicht gelöscht (fehlende Berechtigung?).");
-      return;
-    }
+    if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
+    if (!data || data.length === 0) { setError("Die Frage wurde nicht gelöscht (fehlende Berechtigung?)."); return; }
     onDone();
   }
 
@@ -1114,9 +874,7 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
       <form onSubmit={submit}>
         <label className="fdv-label">Kapitel</label>
         <select className="fdv-input" value={chapterCode} onChange={(e) => setChapterCode(e.target.value)}>
-          {chapters.map((c) => (
-            <option key={c.code} value={c.code}>{c.code} – {c.title}</option>
-          ))}
+          {chapters.map((c) => (<option key={c.code} value={c.code}>{c.code} – {c.title}</option>))}
         </select>
 
         <label className="fdv-label">Fragetyp</label>
@@ -1139,22 +897,9 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
             <label className="fdv-label">Antwortoptionen (richtige markieren)</label>
             {form.options.map((opt, i) => (
               <div className="fdv-form-row" key={i}>
-                <input
-                  type="radio"
-                  name="sc-correct"
-                  checked={form.correctIndex === i}
-                  onChange={() => setForm({ ...form, correctIndex: i })}
-                />
-                <input
-                  className="fdv-input"
-                  value={opt}
-                  placeholder={`Option ${i + 1}`}
-                  onChange={(e) => {
-                    const options = [...form.options];
-                    options[i] = e.target.value;
-                    setForm({ ...form, options });
-                  }}
-                />
+                <input type="radio" name="sc-correct" checked={form.correctIndex === i} onChange={() => setForm({ ...form, correctIndex: i })} />
+                <input className="fdv-input" value={opt} placeholder={`Option ${i + 1}`}
+                  onChange={(e) => { const options = [...form.options]; options[i] = e.target.value; setForm({ ...form, options }); }} />
               </div>
             ))}
           </>
@@ -1165,25 +910,10 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
             <label className="fdv-label">Antwortoptionen (alle richtigen ankreuzen)</label>
             {form.options.map((opt, i) => (
               <div className="fdv-form-row" key={i}>
-                <input
-                  type="checkbox"
-                  checked={form.correctFlags[i]}
-                  onChange={(e) => {
-                    const correctFlags = [...form.correctFlags];
-                    correctFlags[i] = e.target.checked;
-                    setForm({ ...form, correctFlags });
-                  }}
-                />
-                <input
-                  className="fdv-input"
-                  value={opt}
-                  placeholder={`Option ${i + 1}`}
-                  onChange={(e) => {
-                    const options = [...form.options];
-                    options[i] = e.target.value;
-                    setForm({ ...form, options });
-                  }}
-                />
+                <input type="checkbox" checked={form.correctFlags[i]}
+                  onChange={(e) => { const correctFlags = [...form.correctFlags]; correctFlags[i] = e.target.checked; setForm({ ...form, correctFlags }); }} />
+                <input className="fdv-input" value={opt} placeholder={`Option ${i + 1}`}
+                  onChange={(e) => { const options = [...form.options]; options[i] = e.target.value; setForm({ ...form, options }); }} />
               </div>
             ))}
           </>
@@ -1204,25 +934,10 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
             <label className="fdv-label">Teilaussagen</label>
             {form.statements.map((s, i) => (
               <div className="fdv-form-row" key={i}>
-                <input
-                  className="fdv-input"
-                  value={s.text}
-                  placeholder={`Aussage ${i + 1}`}
-                  onChange={(e) => {
-                    const statements = [...form.statements];
-                    statements[i] = { ...statements[i], text: e.target.value };
-                    setForm({ ...form, statements });
-                  }}
-                />
-                <select
-                  className="fdv-input fdv-input-narrow"
-                  value={s.correct ? "wahr" : "falsch"}
-                  onChange={(e) => {
-                    const statements = [...form.statements];
-                    statements[i] = { ...statements[i], correct: e.target.value === "wahr" };
-                    setForm({ ...form, statements });
-                  }}
-                >
+                <input className="fdv-input" value={s.text} placeholder={`Aussage ${i + 1}`}
+                  onChange={(e) => { const statements = [...form.statements]; statements[i] = { ...statements[i], text: e.target.value }; setForm({ ...form, statements }); }} />
+                <select className="fdv-input fdv-input-narrow" value={s.correct ? "wahr" : "falsch"}
+                  onChange={(e) => { const statements = [...form.statements]; statements[i] = { ...statements[i], correct: e.target.value === "wahr" }; setForm({ ...form, statements }); }}>
                   <option value="wahr">Wahr</option>
                   <option value="falsch">Falsch</option>
                 </select>
@@ -1236,26 +951,10 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
             <label className="fdv-label">Paare (links → rechts)</label>
             {form.pairs.map((p, i) => (
               <div className="fdv-form-row" key={i}>
-                <input
-                  className="fdv-input"
-                  value={p.left}
-                  placeholder={`Links ${i + 1}`}
-                  onChange={(e) => {
-                    const pairs = [...form.pairs];
-                    pairs[i] = { ...pairs[i], left: e.target.value };
-                    setForm({ ...form, pairs });
-                  }}
-                />
-                <input
-                  className="fdv-input"
-                  value={p.right}
-                  placeholder={`Rechts ${i + 1}`}
-                  onChange={(e) => {
-                    const pairs = [...form.pairs];
-                    pairs[i] = { ...pairs[i], right: e.target.value };
-                    setForm({ ...form, pairs });
-                  }}
-                />
+                <input className="fdv-input" value={p.left} placeholder={`Links ${i + 1}`}
+                  onChange={(e) => { const pairs = [...form.pairs]; pairs[i] = { ...pairs[i], left: e.target.value }; setForm({ ...form, pairs }); }} />
+                <input className="fdv-input" value={p.right} placeholder={`Rechts ${i + 1}`}
+                  onChange={(e) => { const pairs = [...form.pairs]; pairs[i] = { ...pairs[i], right: e.target.value }; setForm({ ...form, pairs }); }} />
               </div>
             ))}
           </>
@@ -1282,17 +981,15 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
   );
 }
 
-// ---- Admin screen: trash / restore soft-deleted questions ----
+// ---- Papierkorb ----
 function TrashScreen({ onCancel, onRestored }) {
   const [items, setItems] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await sb
-      .from("questions")
-      .select("*")
-      .not("deleted_at", "is", null)
+    const { data, error } = await window.sb
+      .from("questions").select("*").not("deleted_at", "is", null)
       .order("deleted_at", { ascending: false });
     if (error) setError("Laden fehlgeschlagen: " + error.message);
     setItems(data || []);
@@ -1302,17 +999,16 @@ function TrashScreen({ onCancel, onRestored }) {
 
   async function restore(id) {
     setBusyId(id);
-    const { error } = await sb.from("questions").update({ deleted_at: null }).eq("id", id);
+    const { error } = await window.sb.from("questions").update({ deleted_at: null }).eq("id", id);
     setBusyId(null);
     if (error) { setError("Wiederherstellen fehlgeschlagen: " + error.message); return; }
     await load();
     onRestored();
   }
-
   async function purge(id) {
     if (!window.confirm("Endgültig löschen? Das kann nicht mehr rückgängig gemacht werden.")) return;
     setBusyId(id);
-    const { error } = await sb.from("questions").delete().eq("id", id);
+    const { error } = await window.sb.from("questions").delete().eq("id", id);
     setBusyId(null);
     if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
     await load();
@@ -1352,8 +1048,9 @@ function TrashScreen({ onCancel, onRestored }) {
   );
 }
 
-// ---- Main app ----
+// ---- Haupt-App ----
 function FdvTrainerCloud() {
+  const [sb, setSb] = useState(window.sb || null);
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [chapters, setChapters] = useState([]);
@@ -1362,11 +1059,22 @@ function FdvTrainerCloud() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingQ, setEditingQ] = useState(null);
   const [screen, setScreen] = useState("home");
-  const [session_, setSessionQuiz] = useState(null); // quiz session
+  const [session_, setSessionQuiz] = useState(null);
   const [draft, setDraft] = useState(null);
   const [revealed, setRevealed] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
 
+  // Auf Supabase-Client warten (Robustheit gegenüber langsamem ESM-Load)
   useEffect(() => {
+    if (sb) return;
+    let active = true;
+    window.__sbReady.then((client) => { if (active) setSb(client); });
+    return () => { active = false; };
+  }, [sb]);
+
+  // Auth-Setup, sobald sb da ist
+  useEffect(() => {
+    if (!sb) return;
     sb.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
@@ -1375,15 +1083,38 @@ function FdvTrainerCloud() {
       setSession(sess);
     });
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [sb]);
 
-  const [offlineMode, setOfflineMode] = useState(false);
+  // Session bei Rückkehr in den Tab aktualisieren (wichtig für PWA,
+  // deren Access-Token nach 1 h abläuft).
+  useEffect(() => {
+    if (!sb) return;
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        sb.auth.getSession().catch(() => {});
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [sb]);
+
+  // Offline-Banner zurücksetzen, sobald wieder online
+  useEffect(() => {
+    function onOnline() { setOfflineMode(false); }
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
 
   const loadData = useCallback(async (userId) => {
     setDataLoaded(false);
     const cacheKey = "lernlok-cache-" + userId;
     let chapterRows, questionRows, progressRows, adminRow;
     let failed = false;
+
+    // Offline-Queue zuerst synchronisieren (nur wenn online)
+    if (navigator.onLine && sb) {
+      try { await flushPending(sb, userId); } catch (e) {}
+    }
 
     try {
       const [chaptersRes, questionsRes, progressRes, adminRes] = await Promise.all([
@@ -1403,33 +1134,27 @@ function FdvTrainerCloud() {
 
     let usedOffline = false;
     if (failed || !chapterRows) {
-      // Kein Netz oder Supabase nicht erreichbar: letzten erfolgreich geladenen Stand aus dem Browser nehmen.
       try {
         const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
         if (cached) {
           chapterRows = cached.chapterRows;
           questionRows = cached.questionRows;
           progressRows = cached.progressRows;
-          adminRow = cached.adminRow;
+          // adminRow absichtlich NICHT aus dem Cache: Rechte können entzogen worden sein.
+          adminRow = null;
           usedOffline = true;
         }
-      } catch (e) {
-        /* kein nutzbarer Offline-Stand vorhanden */
-      }
+      } catch (e) {}
     } else {
       try {
-        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows, adminRow }));
-      } catch (e) {
-        /* Speichern für Offline-Nutzung fehlgeschlagen, kein Problem für den aktuellen Aufruf */
-      }
+        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows }));
+      } catch (e) {}
     }
 
     setOfflineMode(usedOffline);
 
     const byChapter = {};
-    (chapterRows || []).forEach((c) => {
-      byChapter[c.code] = { code: c.code, title: c.title, questions: [] };
-    });
+    (chapterRows || []).forEach((c) => { byChapter[c.code] = { code: c.code, title: c.title, questions: [] }; });
     (questionRows || []).forEach((row) => {
       const q = rowToQuestion(row);
       if (byChapter[row.chapter_code]) byChapter[row.chapter_code].questions.push(q);
@@ -1437,22 +1162,22 @@ function FdvTrainerCloud() {
     const orderedChapters = (chapterRows || []).map((c) => byChapter[c.code]);
 
     const progressMap = {};
-    (progressRows || []).forEach((p) => {
-      progressMap[p.question_id] = p;
-    });
+    (progressRows || []).forEach((p) => { progressMap[p.question_id] = p; });
+
+    // Noch nicht synchronisierten Offline-Fortschritt über den Serverstand legen,
+    // damit die Anzeige dem lokalen letzten Stand entspricht.
+    readPending(userId).forEach((p) => { progressMap[p.question_id] = p; });
 
     setChapters(orderedChapters);
     setProgress(progressMap);
     setIsAdmin(!!adminRow);
     setDataLoaded(true);
     return orderedChapters;
-  }, []);
+  }, [sb]);
 
   useEffect(() => {
-    if (session && session.user) {
-      loadData(session.user.id);
-    }
-  }, [session, loadData]);
+    if (session && session.user && sb) loadData(session.user.id);
+  }, [session, sb, loadData]);
 
   const allQuestions = useMemo(() => chapters.flatMap((c) => c.questions), [chapters]);
   const wrongCount = useMemo(
@@ -1461,17 +1186,31 @@ function FdvTrainerCloud() {
   );
   const totalAttempted = useMemo(() => allQuestions.filter((q) => progress[q.id]).length, [allQuestions, progress]);
 
+  // Kapitel-Statistiken einmal pro Änderung von chapters/progress berechnen.
+  const chapterStatsMap = useMemo(() => {
+    const m = {};
+    chapters.forEach((c) => { m[c.code] = chapterStats(c, progress); });
+    return m;
+  }, [chapters, progress]);
+
   function loadQuestion(q) {
     setDraft(initDraft(q));
     setRevealed(false);
   }
   function beginSession(title, code, questions) {
+    if (!questions || questions.length === 0) {
+      setScreen("home");
+      return;
+    }
     const qs = shuffledCopy(questions).map(randomizeQuestion);
     setSessionQuiz({ title, code, questions: qs, index: 0, correctCount: 0, answers: {}, results: {} });
     loadQuestion(qs[0]);
     setScreen("quiz");
   }
-  function startChapter(chapter) { beginSession(chapter.title, chapter.code, chapter.questions); }
+  function startChapter(chapter) {
+    if (!chapter) { setScreen("home"); return; }
+    beginSession(chapter.title, chapter.code, chapter.questions);
+  }
   function startMixed() { beginSession("Zufallstraining", null, shuffledCopy(allQuestions).slice(0, 15)); }
   function startReview() {
     const wrong = allQuestions.filter((q) => progress[q.id] && progress[q.id].last_correct === false);
@@ -1497,14 +1236,19 @@ function FdvTrainerCloud() {
       const answers = { ...s.answers, [q.id]: draft };
       return { ...s, results, answers, correctCount: s.questions.filter((x) => results[x.id]).length };
     });
-    try {
-      await sb.from("progress").upsert(nextRow);
-    } catch (e) {
-      /* Offline: Fortschritt wird lokal angezeigt, aber erst beim nächsten Online-Start synchronisiert. */
+
+    // Supabase wirft bei Fehlern nicht, gibt aber { error } zurück.
+    if (!navigator.onLine) {
+      queuePending(session.user.id, nextRow);
+      return;
+    }
+    const { error } = await sb.from("progress").upsert(nextRow);
+    if (error) {
+      queuePending(session.user.id, nextRow);
+      setOfflineMode(true);
     }
   }
 
-  // Show a question: restore the saved answer (read-only review) if it was already answered.
   function openQuestion(q, answers) {
     const saved = answers && answers[q.id];
     if (saved) {
@@ -1524,7 +1268,6 @@ function FdvTrainerCloud() {
       openQuestion(session_.questions[nextIndex], session_.answers);
     }
   }
-
   function goBack() {
     if (!session_ || session_.index <= 0) return;
     const newIndex = session_.index - 1;
@@ -1538,7 +1281,6 @@ function FdvTrainerCloud() {
     setEditingQ({ question, chapterCode: chapter.code });
     setScreen("edit");
   }
-
   function goHome() {
     setSessionQuiz(null);
     setDraft(null);
@@ -1553,7 +1295,7 @@ function FdvTrainerCloud() {
     setScreen("home");
   }
 
-  if (!authChecked) {
+  if (!sb || !authChecked) {
     return <div className="fdv-app"><p className="fdv-sub">Lädt …</p></div>;
   }
   if (!session) {
@@ -1585,12 +1327,10 @@ function FdvTrainerCloud() {
             <h1 className="fdv-title">LernLok</h1>
             <button className="fdv-back-btn" onClick={logout}>Abmelden</button>
           </div>
-          <p className="fdv-sub">
-            {session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt
-          </p>
+          <p className="fdv-sub">{session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt</p>
           {offlineMode && (
             <div className="fdv-offline-banner">
-              Offline – zeigt den zuletzt geladenen Stand. Neue Fragen und dein Fortschritt werden synchronisiert, sobald wieder Internet verfügbar ist.
+              Offline – zeigt den zuletzt geladenen Stand. Antworten werden lokal gespeichert und beim nächsten Online-Start automatisch synchronisiert.
             </div>
           )}
           <div className="fdv-railline" />
@@ -1606,20 +1346,14 @@ function FdvTrainerCloud() {
             </button>
           </div>
 
-          {isAdmin && (
-            <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
-          )}
-          {isAdmin && (
-            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
-          )}
-          {isAdmin && (
-            <button className="fdv-add-btn" onClick={() => setScreen("trash")}>🗑 Papierkorb</button>
-          )}
+          {isAdmin && <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>}
+          {isAdmin && <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>}
+          {isAdmin && <button className="fdv-add-btn" onClick={() => setScreen("trash")}>🗑 Papierkorb</button>}
 
           <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
             {chapters.map((chapter) => {
-              const stats = chapterStats(chapter, progress);
+              const stats = chapterStatsMap[chapter.code] || { attempted: 0, correct: 0, total: 0 };
               const color = masteryColor(stats);
               return (
                 <button key={chapter.code} className="fdv-chapter-row" onClick={() => startChapter(chapter)}>
@@ -1646,10 +1380,7 @@ function FdvTrainerCloud() {
             chapters={chapters}
             userId={session.user.id}
             onCancel={() => setScreen("home")}
-            onDone={async () => {
-              await loadData(session.user.id);
-              setScreen("home");
-            }}
+            onDone={async () => { await loadData(session.user.id); setScreen("home"); }}
           />
         </>
       )}
@@ -1660,10 +1391,7 @@ function FdvTrainerCloud() {
             <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
             <span className="fdv-quiz-title">Neuer Nutzer</span>
           </div>
-          <AddUserScreen
-            accessToken={session.access_token}
-            onCancel={() => setScreen("home")}
-          />
+          <AddUserScreen accessToken={session.access_token} onCancel={() => setScreen("home")} />
         </>
       )}
 
@@ -1673,10 +1401,7 @@ function FdvTrainerCloud() {
             <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
             <span className="fdv-quiz-title">Papierkorb</span>
           </div>
-          <TrashScreen
-            onCancel={() => setScreen("home")}
-            onRestored={() => loadData(session.user.id)}
-          />
+          <TrashScreen onCancel={() => setScreen("home")} onRestored={() => loadData(session.user.id)} />
         </>
       )}
 
@@ -1695,10 +1420,7 @@ function FdvTrainerCloud() {
               const qId = editingQ.question.id;
               const fresh = await loadData(session.user.id);
               setEditingQ(null);
-              if (!fresh || fresh.length === 0) {
-                goHome();
-                return;
-              }
+              if (!fresh || fresh.length === 0) { goHome(); return; }
               const edited = fresh.flatMap((c) => c.questions).find((x) => x.id === qId);
               if (session_) {
                 const idx = session_.questions.findIndex((x) => x.id === qId);
@@ -1710,15 +1432,10 @@ function FdvTrainerCloud() {
                   delete results[qId];
                   let newIndex = idx;
                   if (edited) {
-                    // edited: put the corrected version back so it can be answered again
                     questions[idx] = randomizeQuestion(edited);
                   } else {
-                    // deleted: drop it from the running session
                     questions = questions.filter((x) => x.id !== qId);
-                    if (questions.length === 0) {
-                      goHome();
-                      return;
-                    }
+                    if (questions.length === 0) { goHome(); return; }
                     newIndex = Math.min(idx, questions.length - 1);
                   }
                   const correctCount = questions.filter((x) => results[x.id]).length;
@@ -1770,15 +1487,15 @@ function FdvTrainerCloud() {
                 )}
               </div>
               {currentQ.image && (
-                <img className="fdv-question-image" src={currentQ.image} alt="" onError={(e) => { e.target.style.display = "none"; }} />
+                <img className="fdv-question-image" src={currentQ.image} alt=""
+                  onError={(e) => { e.target.style.display = "none"; }} />
               )}
               <p className="fdv-question">{currentQ.prompt}</p>
               <QuestionBody q={currentQ} draft={draft} setDraft={(d) => setDraft({ ...draft, ...d })} revealed={revealed} />
 
               {!revealed && needsCheckButton && (
-                <button className={"fdv-check-btn" + (draftComplete ? " enabled" : "")} disabled={!draftComplete} onClick={check}>
-                  Prüfen
-                </button>
+                <button className={"fdv-check-btn" + (draftComplete ? " enabled" : "")}
+                  disabled={!draftComplete} onClick={check}>Prüfen</button>
               )}
               {!revealed && !needsCheckButton && draftComplete && (
                 <button className="fdv-check-btn enabled" onClick={check}>Prüfen</button>
@@ -1793,9 +1510,7 @@ function FdvTrainerCloud() {
                   )}
                   <div className="fdv-nav-row">
                     {session_.index > 0 && (
-                      <button type="button" className="fdv-prev-btn" onClick={goBack}>
-                        ‹ Vorherige
-                      </button>
+                      <button type="button" className="fdv-prev-btn" onClick={goBack}>‹ Vorherige</button>
                     )}
                     <button className="fdv-next-btn" onClick={next}>
                       {session_.index + 1 >= session_.questions.length ? "Auswertung ansehen" : "Weiter"}
@@ -1825,7 +1540,8 @@ function FdvTrainerCloud() {
           <div className="fdv-result-sub">richtig beantwortet</div>
           <div className="fdv-result-actions">
             {session_.code && (
-              <button className="fdv-result-btn" onClick={() => { const chapter = chapters.find((c) => c.code === session_.code); startChapter(chapter); }}>
+              <button className="fdv-result-btn"
+                onClick={() => { const chapter = chapters.find((c) => c.code === session_.code); startChapter(chapter); }}>
                 Kapitel wiederholen
               </button>
             )}
@@ -1839,8 +1555,11 @@ function FdvTrainerCloud() {
 }
 
 const rootEl = document.getElementById("root");
-ReactDOM.createRoot(rootEl).render(<FdvTrainerCloud />);
-
+ReactDOM.createRoot(rootEl).render(
+  <ErrorBoundary>
+    <FdvTrainerCloud />
+  </ErrorBoundary>
+);
 </script>
 </body>
-</html>
+  </html>
