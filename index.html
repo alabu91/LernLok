@@ -503,6 +503,16 @@
         .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
         .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
         .fdv-trash-item .fdv-form-actions { margin-top: 0; }
+        .fdv-offline-banner {
+          background: var(--amber-dim);
+          border: 1px solid var(--amber);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-size: 12.5px;
+          line-height: 1.4;
+          margin-bottom: 16px;
+        }
         .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
         .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
         .fdv-prev-btn {
@@ -539,6 +549,13 @@
       root.innerHTML = '<pre style="padding:20px;color:#c0392b;font-family:monospace;white-space:pre-wrap;">Fehler beim Laden der App:\n' + (e.message || e) + '</pre>';
     }
   });
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {
+        // Kein Offline-Modus verfügbar, aber die App funktioniert online trotzdem normal weiter.
+      });
+    });
+  }
 </script>
 
 <script type="text/babel" data-presets="react">
@@ -1360,12 +1377,54 @@ function FdvTrainerCloud() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  const [offlineMode, setOfflineMode] = useState(false);
+
   const loadData = useCallback(async (userId) => {
     setDataLoaded(false);
-    const { data: chapterRows } = await sb.from("chapters").select("*").order("sort_order").order("code");
-    const { data: questionRows } = await sb.from("questions").select("*").is("deleted_at", null);
-    const { data: progressRows } = await sb.from("progress").select("*").eq("user_id", userId);
-    const { data: adminRow } = await sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle();
+    const cacheKey = "lernlok-cache-" + userId;
+    let chapterRows, questionRows, progressRows, adminRow;
+    let failed = false;
+
+    try {
+      const [chaptersRes, questionsRes, progressRes, adminRes] = await Promise.all([
+        sb.from("chapters").select("*").order("sort_order").order("code"),
+        sb.from("questions").select("*").is("deleted_at", null),
+        sb.from("progress").select("*").eq("user_id", userId),
+        sb.from("app_admins").select("user_id").eq("user_id", userId).maybeSingle(),
+      ]);
+      if (chaptersRes.error || questionsRes.error || progressRes.error) failed = true;
+      chapterRows = chaptersRes.data;
+      questionRows = questionsRes.data;
+      progressRows = progressRes.data;
+      adminRow = adminRes.data;
+    } catch (e) {
+      failed = true;
+    }
+
+    let usedOffline = false;
+    if (failed || !chapterRows) {
+      // Kein Netz oder Supabase nicht erreichbar: letzten erfolgreich geladenen Stand aus dem Browser nehmen.
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached) {
+          chapterRows = cached.chapterRows;
+          questionRows = cached.questionRows;
+          progressRows = cached.progressRows;
+          adminRow = cached.adminRow;
+          usedOffline = true;
+        }
+      } catch (e) {
+        /* kein nutzbarer Offline-Stand vorhanden */
+      }
+    } else {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify({ chapterRows, questionRows, progressRows, adminRow }));
+      } catch (e) {
+        /* Speichern für Offline-Nutzung fehlgeschlagen, kein Problem für den aktuellen Aufruf */
+      }
+    }
+
+    setOfflineMode(usedOffline);
 
     const byChapter = {};
     (chapterRows || []).forEach((c) => {
@@ -1438,7 +1497,11 @@ function FdvTrainerCloud() {
       const answers = { ...s.answers, [q.id]: draft };
       return { ...s, results, answers, correctCount: s.questions.filter((x) => results[x.id]).length };
     });
-    await sb.from("progress").upsert(nextRow);
+    try {
+      await sb.from("progress").upsert(nextRow);
+    } catch (e) {
+      /* Offline: Fortschritt wird lokal angezeigt, aber erst beim nächsten Online-Start synchronisiert. */
+    }
   }
 
   // Show a question: restore the saved answer (read-only review) if it was already answered.
@@ -1525,6 +1588,11 @@ function FdvTrainerCloud() {
           <p className="fdv-sub">
             {session.user.email} · {totalAttempted}/{allQuestions.length} Fragen geübt
           </p>
+          {offlineMode && (
+            <div className="fdv-offline-banner">
+              Offline – zeigt den zuletzt geladenen Stand. Neue Fragen und dein Fortschritt werden synchronisiert, sobald wieder Internet verfügbar ist.
+            </div>
+          )}
           <div className="fdv-railline" />
 
           <div className="fdv-training-row">
