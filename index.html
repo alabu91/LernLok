@@ -14,869 +14,521 @@
 <meta name="apple-mobile-web-app-title" content="LernLok" />
 <meta name="mobile-web-app-capable" content="yes" />
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: #eef1ef;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: transparent;
-  }
+  html, body { margin: 0; padding: 0; background: #f2f3f3; }
   #root { min-height: 100vh; }
 
-  .fdv-app {
-    /* ================= Farb-Palette ================= */
-    --bg: #eef1ef;
-    --panel: #ffffff;
-    --panel-border: #e3e8e4;
-    --panel-alt: #f5f8f6;
-    --text: #1b231f;
-    --text-dim: #6a746e;
+        .fdv-app {
+          --bg: #f2f3f3;
+          --panel: #ffffff;
+          --panel-border: #dcdedd;
+          --panel-alt: #f6f7f7;
+          --text: #231f20;
+          --text-dim: #75767a;
+          --green: #75c93b;
+          --green-dark: #5aa32b;
+          --green-dim: #eaf7de;
+          --red: #d1453f;
+          --red-dim: #fbebea;
+          --amber: #c98a2b;
+          --amber-dim: #f7ecdb;
+          --grey: #888687;
+          --grey-dark: #58585a;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100%;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 20px 16px 40px;
+          max-width: 640px;
+          margin: 0 auto;
+        }
+        .fdv-app * { box-sizing: border-box; }
+        .fdv-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+        .fdv-title {
+          font-size: 22px;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .fdv-sub {
+          color: var(--text-dim);
+          font-size: 13px;
+          margin: 2px 0 20px;
+        }
+        .fdv-railline {
+          height: 3px;
+          background: repeating-linear-gradient(
+            90deg,
+            var(--panel-border) 0px,
+            var(--panel-border) 10px,
+            transparent 10px,
+            transparent 16px
+          );
+          margin-bottom: 20px;
+          border-radius: 2px;
+        }
+        .fdv-training-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 22px;
+        }
+        .fdv-training-btn {
+          flex: 1;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 14px 12px;
+          color: var(--text);
+          text-align: left;
+          cursor: pointer;
+          font-size: 13px;
+          transition: border-color 0.15s ease, transform 0.1s ease;
+        }
+        .fdv-training-btn:active { transform: scale(0.98); }
+        .fdv-training-btn:hover { border-color: var(--green); }
+        .fdv-training-btn.disabled {
+          opacity: 0.45;
+          cursor: default;
+          pointer-events: none;
+        }
+        .fdv-training-btn .label {
+          display: block;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
+        .fdv-training-btn .meta {
+          color: var(--text-dim);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .fdv-section-label {
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+          margin: 24px 0 8px;
+        }
+        .fdv-chapter-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          background: var(--panel-border);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          overflow: hidden;
+        }
+        .fdv-chapter-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel);
+          padding: 13px 14px;
+          cursor: pointer;
+          border: none;
+          width: 100%;
+          text-align: left;
+          color: var(--text);
+          font-size: 14px;
+        }
+        .fdv-chapter-row:hover { background: var(--panel-alt); }
+        .fdv-chapter-code {
+          font-variant-numeric: tabular-nums;
+          font-weight: 700;
+          font-size: 13px;
+          color: var(--text-dim);
+          width: 46px;
+          flex-shrink: 0;
+        }
+        .fdv-chapter-title {
+          flex: 1;
+          font-size: 14px;
+        }
+        .fdv-mastery {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .fdv-mastery-text {
+          font-size: 11px;
+          color: var(--text-dim);
+          font-variant-numeric: tabular-nums;
+          min-width: 34px;
+          text-align: right;
+        }
+        /* Quiz screen */
+        .fdv-quiz-top {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .fdv-back-btn {
+          background: none;
+          border: 1px solid var(--panel-border);
+          color: var(--text-dim);
+          border-radius: 5px;
+          padding: 6px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .fdv-quiz-title {
+          font-size: 13px;
+          color: var(--text-dim);
+          flex: 1;
+        }
+        .fdv-progress-track {
+          display: flex;
+          gap: 3px;
+          margin-bottom: 18px;
+        }
+        .fdv-progress-tick {
+          height: 4px;
+          flex: 1;
+          border-radius: 2px;
+          background: var(--panel-border);
+        }
+        .fdv-progress-tick.current { background: var(--grey-dark); }
+        .fdv-progress-tick.correct { background: var(--green); }
+        .fdv-progress-tick.wrong { background: var(--red); }
+        .fdv-card {
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 20px 18px;
+        }
+        .fdv-type-tag {
+          display: inline-block;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--grey-dark);
+          border: 1px solid var(--grey);
+          border-radius: 10px;
+          padding: 2px 8px;
+          margin-bottom: 10px;
+        }
+        .fdv-question-image {
+          display: block;
+          width: auto;
+          max-width: 45%;
+          max-height: 120px;
+          object-fit: contain;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          margin: 0 auto 14px;
+        }
+        .fdv-question {
+          font-size: 17px;
+          font-weight: 600;
+          line-height: 1.4;
+          margin: 0 0 18px;
+        }
+        .fdv-options {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .fdv-options-row {
+          flex-direction: row;
+        }
+        .fdv-option {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+          color: var(--text);
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          line-height: 1.35;
+        }
+        .fdv-option-tf { flex: 1; justify-content: center; }
+        .fdv-option:hover:not(.locked) { border-color: var(--grey); }
+        .fdv-option.picked { border-color: var(--grey-dark); }
+        .fdv-option.locked { cursor: default; }
+        .fdv-option.correct-answer {
+          border-color: var(--green);
+          background: var(--green-dim);
+        }
+        .fdv-option.wrong-answer {
+          border-color: var(--red);
+          background: var(--red-dim);
+        }
+        .fdv-option-light {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+        }
+        .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
+        .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
+        .fdv-option.picked .fdv-option-light { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-checkbox-box {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          border: 2px solid var(--panel-border);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          color: #ffffff;
+        }
+        .fdv-checkbox-box.checked { background: var(--grey-dark); border-color: var(--grey-dark); }
+        .fdv-option.correct-answer .fdv-checkbox-box { background: var(--green); border-color: var(--green); color: var(--text); }
+        .fdv-option.wrong-answer .fdv-checkbox-box { background: var(--red); border-color: var(--red); color: #fff; }
+        /* TFM table */
+        .fdv-tfm-table { display: flex; flex-direction: column; gap: 8px; }
+        .fdv-tfm-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-tfm-text { flex: 1; font-size: 13.5px; line-height: 1.4; }
+        .fdv-tfm-choices { display: flex; gap: 6px; flex-shrink: 0; }
+        .fdv-tfm-pill {
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+          border-radius: 5px;
+          padding: 7px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        .fdv-tfm-pill.picked { border-color: var(--grey-dark); color: var(--grey-dark); }
+        .fdv-tfm-pill.locked { cursor: default; }
+        .fdv-tfm-pill.correct-answer { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+        .fdv-tfm-pill.wrong-answer { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+        /* Matching */
+        .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
+        .fdv-matching-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 12px;
+        }
+        .fdv-matching-left { font-size: 13.5px; font-weight: 600; min-width: 90px; }
+        .fdv-matching-select {
+          flex: 1;
+          min-width: 140px;
+          background: var(--panel);
+          color: var(--text);
+          border: 1px solid var(--panel-border);
+          border-radius: 5px;
+          padding: 8px 8px;
+          font-size: 13px;
+        }
+        .fdv-matching-select.correct-answer { border-color: var(--green); }
+        .fdv-matching-select.wrong-answer { border-color: var(--red); }
+        .fdv-matching-solution { width: 100%; font-size: 12px; color: var(--green); }
+        .fdv-check-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--panel-border);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-check-btn.enabled { background: var(--green); color: var(--text); cursor: pointer; }
+        .fdv-check-btn:disabled { opacity: 0.5; cursor: default; }
+        .fdv-explanation {
+          margin-top: 16px;
+          padding-top: 14px;
+          border-top: 1px solid var(--panel-border);
+          font-size: 13px;
+          color: var(--text-dim);
+          line-height: 1.5;
+        }
+        .fdv-explanation strong { color: var(--text); }
+        .fdv-next-btn {
+          margin-top: 18px;
+          width: 100%;
+          background: var(--green);
+          color: var(--text);
+          border: none;
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .fdv-next-btn:hover { filter: brightness(1.08); }
+        /* Result screen */
+        .fdv-result-score {
+          font-size: 44px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          margin: 6px 0 2px;
+        }
+        .fdv-result-sub {
+          color: var(--text-dim);
+          font-size: 14px;
+          margin-bottom: 24px;
+        }
+        .fdv-result-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .fdv-result-btn {
+          border-radius: 6px;
+          padding: 13px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--panel-border);
+          background: var(--panel);
+          color: var(--text);
+        }
+        .fdv-result-btn.primary { background: var(--green); color: var(--text); border: none; font-weight: 700; }
+        .fdv-result-btn.warn { background: var(--red); color: #fff; border: none; font-weight: 700; }
+              /* Login + form additions */
+        .fdv-login-wrap {
+          max-width: 380px;
+          margin: 60px auto 0;
+        }
+        .fdv-login-card {
+          margin-top: 16px;
+        }
+        .fdv-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-dim);
+          margin: 14px 0 5px;
+        }
+        .fdv-label:first-child { margin-top: 0; }
+        .fdv-input {
+          width: 100%;
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 10px 11px;
+          font-size: 14px;
+          color: var(--text);
+          font-family: inherit;
+        }
+        .fdv-input-narrow { width: auto; flex-shrink: 0; }
+        .fdv-form-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        .fdv-form-row .fdv-input { flex: 1; }
+        .fdv-form-error {
+          color: var(--red);
+          font-size: 13px;
+          margin-top: 10px;
+        }
+        .fdv-form-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
+        .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
+        .fdv-add-btn {
+          width: 100%;
+          background: var(--panel);
+          border: 1px dashed var(--grey);
+          border-radius: 6px;
+          padding: 12px;
+          color: var(--grey-dark);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 22px;
+        }
+        .fdv-add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+        .fdv-card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
+        .fdv-card-head-actions { display: flex; align-items: center; gap: 12px; }
+        .fdv-source-tag { font-size: 11.5px; color: var(--text-dim); margin: -6px 0 12px; }
+        .fdv-link-btn {
+          background: none;
+          border: none;
+          padding: 4px 0;
+          font-size: 12px;
+          color: var(--grey-dark);
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        .fdv-link-btn:hover { color: var(--text); }
+        .fdv-delete-btn { width: 100%; margin-top: 10px; }
+        .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+        .fdv-trash-item {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          padding: 12px 14px;
+        }
+        .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .fdv-trash-chapter { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+        .fdv-trash-prompt { font-size: 14px; margin-bottom: 10px; }
+        .fdv-trash-item .fdv-form-actions { margin-top: 0; }
+        .fdv-offline-banner {
+          background: var(--amber-dim);
+          border: 1px solid var(--amber);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 10px 12px;
+          font-size: 12.5px;
+          line-height: 1.4;
+          margin-bottom: 16px;
+        }
+        .fdv-nav-row { display: flex; gap: 10px; margin-top: 18px; }
+        .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
+        .fdv-prev-btn {
+          background: var(--panel-alt);
+          border: 1px solid var(--panel-border);
+          color: var(--text);
+          border-radius: 6px;
+          padding: 13px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .fdv-prev-btn:hover { border-color: var(--grey); }
 
-    --green: #6cc12c;
-    --green-light: #8ed94f;
-    --green-dark: #4a931c;
-    --green-dim: #eef9e2;
-    --on-green: #12240a;
-    --green-ring: rgba(108, 193, 44, 0.28);
-
-    --red: #e04b3d;
-    --red-light: #ec6457;
-    --red-dim: #fdecea;
-    --on-red: #ffffff;
-
-    --amber: #d18f21;
-    --amber-dim: #fcf3e2;
-
-    --grey: #8b948f;
-    --grey-dark: #46504a;
-    --pick: #46504a;
-    --on-pick: #ffffff;
-    --border-strong: #cfd6d1;
-
-    /* ================= Form ================= */
-    --radius: 14px;
-    --radius-sm: 10px;
-    --radius-xs: 8px;
-
-    /* ================= Schatten ================= */
-    --shadow-xs: 0 1px 2px rgba(18, 28, 22, 0.05);
-    --shadow-sm: 0 1px 2px rgba(18, 28, 22, 0.05), 0 3px 10px rgba(18, 28, 22, 0.05);
-    --shadow-md: 0 2px 6px rgba(18, 28, 22, 0.05), 0 12px 28px rgba(18, 28, 22, 0.08);
-    --shadow-green: 0 4px 16px rgba(108, 193, 44, 0.28);
-
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background:
-      radial-gradient(900px 420px at 50% -10%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
-      var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    width: 100%;
-    box-sizing: border-box;
-    padding: calc(18px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(44px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
-    max-width: 680px;
-    margin: 0 auto;
-  }
-  .fdv-app * { box-sizing: border-box; }
-
-  button, input, select, textarea { font-family: inherit; }
-  button { touch-action: manipulation; }
-
-  /* ================= Kopfbereich ================= */
-  .fdv-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 2px;
-  }
-  .fdv-title {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-    line-height: 1.15;
-  }
-  .fdv-title::before {
-    content: "";
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--green-light), var(--green-dark));
-    box-shadow: 0 0 0 4px var(--green-dim);
-    flex-shrink: 0;
-  }
-  .fdv-sub {
-    color: var(--text-dim);
-    font-size: 13.5px;
-    line-height: 1.5;
-    margin: 8px 0 20px;
-  }
-  .fdv-railline {
-    height: 3px;
-    border-radius: 2px;
-    background: repeating-linear-gradient(90deg, var(--green) 0 12px, transparent 12px 20px);
-    opacity: 0.32;
-    margin-bottom: 20px;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-  }
-
-  /* ================= Training-Buttons ================= */
-  .fdv-training-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 22px;
-  }
-  .fdv-training-btn {
-    flex: 1;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 15px 14px;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    font-size: 13px;
-    min-height: 74px;
-    box-shadow: var(--shadow-xs);
-    transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-  }
-  .fdv-training-btn:hover { border-color: rgba(108, 193, 44, 0.5); box-shadow: var(--shadow-sm); background: var(--panel); }
-  .fdv-training-btn:active { transform: scale(0.975); box-shadow: var(--shadow-xs); }
-  .fdv-training-btn.disabled {
-    opacity: 0.45;
-    cursor: default;
-    pointer-events: none;
-    box-shadow: none;
-  }
-  .fdv-training-btn .label {
-    display: block;
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 5px;
-    letter-spacing: -0.01em;
-  }
-  .fdv-training-btn .label::before {
-    content: "";
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    margin-right: 7px;
-    vertical-align: 1.5px;
-    background: var(--grey);
-    transition: box-shadow 0.18s ease;
-  }
-  .fdv-training-row .fdv-training-btn:first-child .label::before {
-    background: var(--green);
-    box-shadow: 0 0 0 3px var(--green-dim);
-  }
-  .fdv-training-row .fdv-training-btn:nth-child(2) .label::before {
-    background: var(--amber);
-    box-shadow: 0 0 0 3px var(--amber-dim);
-  }
-  .fdv-training-btn .meta {
-    color: var(--text-dim);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ================= Kapitel ================= */
-  .fdv-section-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    font-weight: 700;
-    color: var(--text-dim);
-    margin: 26px 0 10px;
-  }
-  .fdv-chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .fdv-chapter-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-xs);
-    padding: 13px 15px;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    color: var(--text);
-    font-size: 14px;
-    min-height: 56px;
-    transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.12s ease, background 0.18s ease;
-  }
-  .fdv-chapter-row:hover {
-    border-color: rgba(108, 193, 44, 0.5);
-    background: var(--panel);
-    box-shadow: var(--shadow-sm);
-  }
-  .fdv-chapter-row:active { transform: scale(0.99); }
-  .fdv-chapter-code {
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
-    font-size: 12.5px;
-    color: var(--green-dark);
-    background: var(--green-dim);
-    border-radius: 7px;
-    padding: 5px 9px;
-    min-width: 44px;
-    text-align: center;
-    flex-shrink: 0;
-    letter-spacing: 0.01em;
-  }
-  .fdv-chapter-title {
-    flex: 1;
-    font-size: 14px;
-    line-height: 1.35;
-  }
-  .fdv-mastery {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .fdv-mastery-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 0 0 3px rgba(20, 30, 25, 0.045);
-  }
-  .fdv-mastery-text {
-    font-size: 11.5px;
-    color: var(--text-dim);
-    font-variant-numeric: tabular-nums;
-    min-width: 36px;
-    text-align: right;
-    font-weight: 600;
-  }
-
-  /* ================= Quiz ================= */
-  .fdv-quiz-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .fdv-back-btn {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    color: var(--text-dim);
-    border-radius: 9px;
-    padding: 8px 13px;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 38px;
-    box-shadow: var(--shadow-xs);
-    transition: color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  }
-  .fdv-back-btn:hover { color: var(--text); border-color: rgba(108, 193, 44, 0.55); }
-  .fdv-back-btn:active { transform: scale(0.97); }
-  .fdv-quiz-title {
-    font-size: 13px;
-    color: var(--text-dim);
-    flex: 1;
-    font-weight: 500;
-    line-height: 1.35;
-  }
-  .fdv-progress-track {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 20px;
-  }
-  .fdv-progress-tick {
-    height: 5px;
-    flex: 1;
-    border-radius: 3px;
-    background: var(--panel-border);
-    transition: background 0.25s ease;
-  }
-  .fdv-progress-tick.current { background: var(--grey-dark); }
-  .fdv-progress-tick.correct { background: var(--green); }
-  .fdv-progress-tick.wrong { background: var(--red); }
-
-  /* ================= Karte ================= */
-  .fdv-card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 18px;
-    padding: 22px 18px;
-    box-shadow: var(--shadow-md);
-  }
-  .fdv-type-tag {
-    display: inline-block;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-weight: 700;
-    color: var(--green-dark);
-    background: var(--green-dim);
-    border: none;
-    border-radius: 20px;
-    padding: 4px 10px;
-    margin-bottom: 10px;
-  }
-  .fdv-question-image {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    max-height: 200px;
-    object-fit: contain;
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: 10px;
-    padding: 6px;
-    margin: 0 auto 16px;
-  }
-  .fdv-question {
-    font-size: 17.5px;
-    font-weight: 600;
-    line-height: 1.45;
-    letter-spacing: -0.01em;
-    margin: 0 0 18px;
-  }
-
-  /* ================= Antwortoptionen ================= */
-  .fdv-options {
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-  }
-  .fdv-options-row { flex-direction: row; }
-  .fdv-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    border-radius: var(--radius-sm);
-    padding: 14px 15px;
-    color: var(--text);
-    font-size: 14.5px;
-    text-align: left;
-    cursor: pointer;
-    line-height: 1.4;
-    min-height: 52px;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  }
-  .fdv-option-tf { flex: 1; justify-content: center; }
-  .fdv-option:hover:not(.locked) {
-    border-color: rgba(108, 193, 44, 0.6);
-    background: var(--panel);
-  }
-  .fdv-option:active:not(.locked) { transform: scale(0.99); }
-  .fdv-option.picked {
-    border-color: var(--pick);
-    background: var(--panel);
-    box-shadow: 0 0 0 3px rgba(70, 80, 74, 0.09);
-  }
-  .fdv-option.locked { cursor: default; }
-  .fdv-option.correct-answer {
-    border-color: var(--green);
-    background: var(--green-dim);
-    box-shadow: 0 0 0 3px rgba(108, 193, 44, 0.14);
-  }
-  .fdv-option.wrong-answer {
-    border-color: var(--red);
-    background: var(--red-dim);
-    box-shadow: 0 0 0 3px rgba(224, 75, 61, 0.12);
-  }
-  .fdv-option-light {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--border-strong);
-    background: var(--panel);
-    flex-shrink: 0;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  .fdv-option:hover:not(.locked) .fdv-option-light { border-color: var(--green); }
-  .fdv-option.picked .fdv-option-light { background: var(--pick); border-color: var(--pick); }
-  .fdv-option.correct-answer .fdv-option-light { background: var(--green); border-color: var(--green); }
-  .fdv-option.wrong-answer .fdv-option-light { background: var(--red); border-color: var(--red); }
-
-  .fdv-checkbox-box {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    border: 2px solid var(--border-strong);
-    background: var(--panel);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: transparent;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  }
-  .fdv-option:hover:not(.locked) .fdv-checkbox-box { border-color: var(--green); }
-  .fdv-checkbox-box.checked {
-    background: var(--pick);
-    border-color: var(--pick);
-    color: var(--on-pick);
-  }
-  .fdv-option.correct-answer .fdv-checkbox-box {
-    background: var(--green);
-    border-color: var(--green);
-    color: var(--on-green);
-  }
-  .fdv-option.wrong-answer .fdv-checkbox-box {
-    background: var(--red);
-    border-color: var(--red);
-    color: var(--on-red);
-  }
-
-  /* ================= Wahr/Falsch-Matrix ================= */
-  .fdv-tfm-table { display: flex; flex-direction: column; gap: 9px; }
-  .fdv-tfm-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    border-radius: var(--radius-sm);
-    padding: 12px 13px;
-  }
-  .fdv-tfm-text { flex: 1; font-size: 14px; line-height: 1.45; }
-  .fdv-tfm-choices { display: flex; gap: 7px; flex-shrink: 0; }
-  .fdv-tfm-pill {
-    border: 1.5px solid var(--panel-border);
-    background: var(--panel);
-    color: var(--text);
-    border-radius: 9px;
-    padding: 9px 12px;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 40px;
-    transition: all 0.15s ease;
-  }
-  .fdv-tfm-pill:hover:not(.locked) { border-color: rgba(108, 193, 44, 0.6); }
-  .fdv-tfm-pill:active:not(.locked) { transform: scale(0.97); }
-  .fdv-tfm-pill.picked {
-    border-color: var(--pick);
-    background: var(--pick);
-    color: var(--on-pick);
-  }
-  .fdv-tfm-pill.locked { cursor: default; }
-  .fdv-tfm-pill.correct-answer {
-    border-color: var(--green);
-    background: var(--green);
-    color: var(--on-green);
-  }
-  .fdv-tfm-pill.wrong-answer {
-    border-color: var(--red);
-    background: var(--red);
-    color: var(--on-red);
-  }
-
-  /* ================= Zuordnung ================= */
-  .fdv-matching { display: flex; flex-direction: column; gap: 10px; }
-  .fdv-matching-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 9px;
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    border-radius: var(--radius-sm);
-    padding: 12px 13px;
-  }
-  .fdv-matching-left {
-    font-size: 14px;
-    font-weight: 700;
-    min-width: 90px;
-    line-height: 1.35;
-  }
-  .fdv-matching-select {
-    flex: 1;
-    min-width: 150px;
-    background-color: var(--panel);
-    color: var(--text);
-    border: 1.5px solid var(--panel-border);
-    border-radius: 9px;
-    padding: 10px 32px 10px 11px;
-    font-size: 13.5px;
-    min-height: 44px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-  .fdv-matching-select:focus {
-    outline: none;
-    border-color: var(--green);
-    box-shadow: 0 0 0 4px var(--green-ring);
-  }
-  .fdv-matching-select.correct-answer { border-color: var(--green); background-color: var(--green-dim); }
-  .fdv-matching-select.wrong-answer { border-color: var(--red); background-color: var(--red-dim); }
-  .fdv-matching-solution {
-    width: 100%;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--green-dark);
-    line-height: 1.4;
-  }
-
-  /* ================= Buttons im Quiz ================= */
-  .fdv-check-btn {
-    margin-top: 20px;
-    width: 100%;
-    background: var(--panel-alt);
-    color: var(--text-dim);
-    border: 1.5px solid var(--panel-border);
-    border-radius: var(--radius-sm);
-    padding: 15px;
-    font-size: 14.5px;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 54px;
-    transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
-  }
-  .fdv-check-btn.enabled {
-    background: linear-gradient(135deg, var(--green-light), var(--green));
-    color: var(--on-green);
-    border-color: transparent;
-    box-shadow: var(--shadow-green);
-  }
-  .fdv-check-btn.enabled:hover { filter: brightness(1.05); }
-  .fdv-check-btn.enabled:active { transform: scale(0.99); }
-  .fdv-check-btn:disabled { opacity: 0.55; cursor: default; }
-
-  .fdv-next-btn {
-    margin-top: 18px;
-    width: 100%;
-    background: linear-gradient(135deg, var(--green-light), var(--green));
-    color: var(--on-green);
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 15px;
-    font-size: 14.5px;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 54px;
-    box-shadow: var(--shadow-green);
-    transition: filter 0.15s ease, transform 0.1s ease;
-  }
-  .fdv-next-btn:hover { filter: brightness(1.05); }
-  .fdv-next-btn:active { transform: scale(0.99); }
-
-  .fdv-prev-btn {
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    color: var(--text);
-    border-radius: var(--radius-sm);
-    padding: 15px 18px;
-    font-size: 14.5px;
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 54px;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
-  }
-  .fdv-prev-btn:hover { border-color: var(--grey); background: var(--panel); }
-  .fdv-prev-btn:active { transform: scale(0.99); }
-
-  .fdv-explanation {
-    margin-top: 16px;
-    padding: 13px 14px;
-    background: var(--panel-alt);
-    border-left: 3px solid var(--green);
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    color: var(--text-dim);
-    line-height: 1.55;
-  }
-  .fdv-explanation strong { color: var(--text); }
-
-  /* ================= Ergebnis ================= */
-  .fdv-result-score {
-    font-size: 54px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.035em;
-    line-height: 1;
-    margin: 10px 0 4px;
-  }
-  .fdv-result-sub {
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-bottom: 26px;
-  }
-  .fdv-result-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .fdv-result-btn {
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1.5px solid var(--panel-border);
-    background: var(--panel);
-    color: var(--text);
-    min-height: 52px;
-    transition: all 0.18s ease;
-  }
-  .fdv-result-btn:hover { border-color: var(--grey); }
-  .fdv-result-btn:active { transform: scale(0.99); }
-  .fdv-result-btn.primary {
-    background: linear-gradient(135deg, var(--green-light), var(--green));
-    color: var(--on-green);
-    border: none;
-    font-weight: 700;
-    box-shadow: var(--shadow-green);
-  }
-  .fdv-result-btn.primary:hover { filter: brightness(1.05); border: none; }
-  .fdv-result-btn.warn {
-    background: linear-gradient(135deg, var(--red-light), var(--red));
-    color: var(--on-red);
-    border: none;
-    font-weight: 700;
-    box-shadow: 0 4px 16px rgba(224, 75, 61, 0.28);
-  }
-  .fdv-result-btn.warn:hover { filter: brightness(1.05); border: none; }
-
-  /* ================= Login / Formulare ================= */
-  .fdv-login-wrap {
-    max-width: 380px;
-    margin: clamp(24px, 8vh, 72px) auto 0;
-  }
-  .fdv-login-card { margin-top: 16px; }
-  .fdv-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    color: var(--text-dim);
-    margin: 16px 0 6px;
-  }
-  .fdv-label:first-child { margin-top: 0; }
-  .fdv-input {
-    width: 100%;
-    background: var(--panel-alt);
-    border: 1.5px solid var(--panel-border);
-    border-radius: var(--radius-sm);
-    padding: 12px 13px;
-    font-size: 16px;
-    color: var(--text);
-    font-family: inherit;
-    min-height: 48px;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-  }
-  .fdv-input:focus {
-    outline: none;
-    border-color: var(--green);
-    background: var(--panel);
-    box-shadow: 0 0 0 4px var(--green-ring);
-  }
-  textarea.fdv-input { min-height: 0; line-height: 1.45; resize: vertical; }
-  select.fdv-input, .fdv-matching-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%238b948f' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 13px center;
-    padding-right: 34px;
-  }
-  .fdv-input-narrow { width: auto; flex-shrink: 0; }
-  .fdv-form-row {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin-bottom: 9px;
-  }
-  .fdv-form-row .fdv-input { flex: 1; }
-  .fdv-form-row input[type="radio"],
-  .fdv-form-row input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--green);
-    flex-shrink: 0;
-    cursor: pointer;
-  }
-  .fdv-form-error {
-    color: var(--red);
-    background: var(--red-dim);
-    border-radius: var(--radius-sm);
-    padding: 11px 13px;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.45;
-    margin-top: 12px;
-  }
-  .fdv-form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-  }
-  .fdv-form-actions .fdv-result-btn { flex: 1; margin: 0; }
-
-  .fdv-add-btn {
-    width: 100%;
-    background: var(--panel);
-    border: 1.5px dashed var(--border-strong);
-    border-radius: var(--radius);
-    padding: 14px;
-    color: var(--text-dim);
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 10px;
-    min-height: 52px;
-    transition: all 0.18s ease;
-  }
-  .fdv-add-btn:hover {
-    border-color: var(--green);
-    border-style: solid;
-    color: var(--green-dark);
-    background: var(--green-dim);
-    box-shadow: var(--shadow-xs);
-  }
-  .fdv-add-btn:active { transform: scale(0.99); }
-
-  .fdv-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
-  .fdv-card-head-actions { display: flex; align-items: center; gap: 14px; }
-  .fdv-source-tag {
-    font-size: 11.5px;
-    color: var(--text-dim);
-    margin: -4px 0 12px;
-    line-height: 1.4;
-  }
-  .fdv-link-btn {
-    background: none;
-    border: none;
-    padding: 6px 0;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: color 0.15s ease;
-  }
-  .fdv-link-btn:hover { color: var(--green-dark); }
-  .fdv-delete-btn { width: 100%; margin-top: 10px; }
-
-  .fdv-trash-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-  .fdv-trash-item {
-    background: var(--panel-alt);
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    padding: 14px 15px;
-  }
-  .fdv-trash-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-  .fdv-trash-chapter {
-    font-size: 12px;
-    color: var(--text-dim);
-    font-weight: 700;
-  }
-  .fdv-trash-prompt { font-size: 14px; margin-bottom: 12px; line-height: 1.4; }
-  .fdv-trash-item .fdv-form-actions { margin-top: 0; }
-
-  .fdv-offline-banner {
-    background: var(--amber-dim);
-    border: 1px solid rgba(209, 143, 33, 0.35);
-    border-left: 4px solid var(--amber);
-    color: var(--text);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 12.5px;
-    line-height: 1.5;
-    margin-bottom: 16px;
-  }
-
-  .fdv-nav-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-  }
-  .fdv-nav-row .fdv-next-btn { width: auto; flex: 1; margin-top: 0; }
-
-  /* ================= Tablet / kleine Screens ================= */
-  @media (min-width: 700px) {
-    .fdv-app { max-width: 720px; padding-left: 24px; padding-right: 24px; }
-    .fdv-card { padding: 26px 24px; border-radius: 20px; }
-    .fdv-title { font-size: 26px; }
-    .fdv-question { font-size: 18.5px; }
-    .fdv-training-btn { padding: 17px 16px; }
-  }
-  @media (max-width: 360px) {
-    .fdv-app { padding-left: 10px; padding-right: 10px; }
-    .fdv-card { padding: 18px 14px; }
-    .fdv-title { font-size: 22px; }
-    .fdv-question { font-size: 16.5px; }
-    .fdv-option { padding: 12px 12px; font-size: 14px; }
-    .fdv-tfm-pill { padding: 8px 9px; font-size: 12px; }
-  }
-
-  /* ================= Dunkelmodus ================= */
-  @media (prefers-color-scheme: dark) {
-    html, body { background: #12160f; }
-    .fdv-app {
-      --bg: #12160f;
-      --panel: #1b211a;
-      --panel-border: #2b332a;
-      --panel-alt: #222821;
-      --text: #e9eee8;
-      --text-dim: #98a29b;
-
-      --green: #7ed03a;
-      --green-light: #98e05c;
-      --green-dark: #a8e878;
-      --green-dim: #23311a;
-      --on-green: #0e1f06;
-      --green-ring: rgba(126, 208, 58, 0.22);
-
-      --red: #ff6b5e;
-      --red-light: #ff8578;
-      --red-dim: #37201d;
-      --on-red: #2a0d09;
-
-      --amber: #e8b04a;
-      --amber-dim: #37301b;
-
-      --grey: #8b948f;
-      --grey-dark: #b9c1bb;
-      --pick: #b9c1bb;
-      --on-pick: #1b231f;
-      --border-strong: #3b443d;
-
-      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 3px 10px rgba(0, 0, 0, 0.35);
-      --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.45);
-      --shadow-green: 0 4px 18px rgba(126, 208, 58, 0.25);
-
-      background:
-        radial-gradient(900px 420px at 50% -10%, rgba(126, 208, 58, 0.09) 0%, rgba(126, 208, 58, 0) 62%),
-        var(--bg);
-    }
-    .fdv-mastery-dot { box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 0 0 3px rgba(255, 255, 255, 0.05); }
-    .fdv-option.picked { box-shadow: 0 0 0 3px rgba(185, 193, 187, 0.15); }
-    .fdv-option.correct-answer { box-shadow: 0 0 0 3px rgba(126, 208, 58, 0.16); }
-    .fdv-option.wrong-answer { box-shadow: 0 0 0 3px rgba(255, 107, 94, 0.16); }
-    .fdv-training-btn:hover,
-    .fdv-chapter-row:hover { border-color: rgba(126, 208, 58, 0.45); }
-    .fdv-offline-banner { border-color: rgba(232, 176, 74, 0.4); }
-  }
 </style>
 </head>
 <body>
