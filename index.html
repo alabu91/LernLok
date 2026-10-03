@@ -483,6 +483,8 @@
         .fdv-card-head .fdv-type-tag { margin-bottom: 0; }
         .fdv-card-head-actions { display: flex; align-items: center; gap: 12px; }
         .fdv-source-tag { font-size: 11.5px; color: var(--text-dim); margin: -6px 0 12px; }
+        .fdv-image-preview-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .fdv-image-preview { max-width: 120px; max-height: 80px; border-radius: 4px; border: 1px solid var(--panel-border); object-fit: contain; background: var(--panel-alt); }
         .fdv-link-btn {
           background: none;
           border: none;
@@ -537,6 +539,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.25.6/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   window.sb = createClient(
@@ -868,12 +871,38 @@ function ForcePasswordChangeScreen({ onDone }) {
 }
 
 // ---- Admin screen: create a new user with a temporary password ----
-function AddUserScreen({ accessToken, onCancel }) {
+async function callUserAdmin(accessToken, body) {
+  const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-manage-users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Unbekannter Fehler.");
+  return data;
+}
+
+function UsersScreen({ accessToken, currentUserId, onCancel }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(null);
+  const [users, setUsers] = useState(null);
+  const [rowBusyId, setRowBusyId] = useState(null);
+  const [resetTarget, setResetTarget] = useState(null);
+  const [resetPw, setResetPw] = useState("");
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await callUserAdmin(accessToken, { action: "list" });
+      setUsers(data.users);
+    } catch (e) {
+      setError("Nutzerliste konnte nicht geladen werden: " + e.message);
+    }
+  }, [accessToken]);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
   async function submit(e) {
     e.preventDefault();
@@ -887,10 +916,7 @@ function AddUserScreen({ accessToken, onCancel }) {
     try {
       const res = await fetch("https://nsidzovmagohzuwvikev.supabase.co/functions/v1/admin-create-user", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + accessToken,
-        },
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
@@ -900,11 +926,34 @@ function AddUserScreen({ accessToken, onCancel }) {
         setSuccess(data.user.email);
         setEmail("");
         setPassword("");
+        await loadUsers();
       }
     } catch (err) {
       setError("Verbindungsfehler: " + err.message);
     }
     setBusy(false);
+  }
+
+  async function doAction(userId, action, extra) {
+    setRowBusyId(userId);
+    setError("");
+    try {
+      await callUserAdmin(accessToken, { action, user_id: userId, ...extra });
+      await loadUsers();
+      if (action === "reset_password") {
+        setResetTarget(null);
+        setResetPw("");
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setRowBusyId(null);
+  }
+
+  function confirmDelete(u) {
+    if (window.confirm("Konto " + u.email + " endgültig löschen? Das kann nicht rückgängig gemacht werden.")) {
+      doAction(u.id, "delete");
+    }
   }
 
   return (
@@ -924,6 +973,70 @@ function AddUserScreen({ accessToken, onCancel }) {
           </button>
         </div>
       </form>
+
+      <div className="fdv-section-label" style={{ marginTop: 24 }}>Bestehende Nutzer</div>
+      {users === null && <p className="fdv-sub">Lädt …</p>}
+      {users && (
+        <div className="fdv-trash-list">
+          {users.map((u) => {
+            const banned = u.banned_until && new Date(u.banned_until) > new Date();
+            const isSelf = u.id === currentUserId;
+            return (
+              <div className="fdv-trash-item" key={u.id}>
+                <div className="fdv-trash-meta">
+                  {u.is_admin && <span className="fdv-type-tag">Admin</span>}
+                  {banned && <span className="fdv-type-tag" style={{ color: "var(--red)", borderColor: "var(--red)" }}>Gesperrt</span>}
+                  {u.must_change_password && <span className="fdv-type-tag">Passwort ausstehend</span>}
+                </div>
+                <div className="fdv-trash-prompt">{u.email || "(keine E-Mail)"}</div>
+                {resetTarget === u.id ? (
+                  <div className="fdv-form-row">
+                    <input
+                      className="fdv-input"
+                      type="text"
+                      placeholder="Neues temporäres Passwort"
+                      value={resetPw}
+                      onChange={(e) => setResetPw(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="fdv-result-btn primary"
+                      disabled={rowBusyId === u.id}
+                      onClick={() => doAction(u.id, "reset_password", { password: resetPw })}
+                    >
+                      Setzen
+                    </button>
+                    <button type="button" className="fdv-result-btn" onClick={() => { setResetTarget(null); setResetPw(""); }}>
+                      Abbrechen
+                    </button>
+                  </div>
+                ) : (
+                  <div className="fdv-form-actions">
+                    <button type="button" className="fdv-result-btn" disabled={rowBusyId === u.id} onClick={() => { setResetTarget(u.id); setResetPw(""); }}>
+                      Passwort zurücksetzen
+                    </button>
+                    {!isSelf && (
+                      <button
+                        type="button"
+                        className="fdv-result-btn"
+                        disabled={rowBusyId === u.id}
+                        onClick={() => doAction(u.id, banned ? "unban" : "ban")}
+                      >
+                        {banned ? "Entsperren" : "Sperren"}
+                      </button>
+                    )}
+                    {!isSelf && (
+                      <button type="button" className="fdv-result-btn warn" disabled={rowBusyId === u.id} onClick={() => confirmDelete(u)}>
+                        Löschen
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1005,6 +1118,29 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
   const [type, setType] = useState(editing ? editing.question.type : "sc");
   const [prompt, setPrompt] = useState(editing ? editing.question.prompt : "");
   const [image, setImage] = useState(editing ? (editing.question.image || "") : "");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  async function uploadImage(file) {
+    if (!file) return;
+    setUploadError("");
+    setUploadingImage(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext;
+      const { error: upErr } = await sb.storage.from("bilder").upload(path, file, { upsert: false });
+      if (upErr) {
+        setUploadError("Hochladen fehlgeschlagen: " + upErr.message);
+        setUploadingImage(false);
+        return;
+      }
+      const { data } = sb.storage.from("bilder").getPublicUrl(path);
+      setImage(data.publicUrl);
+    } catch (e) {
+      setUploadError("Hochladen fehlgeschlagen: " + e.message);
+    }
+    setUploadingImage(false);
+  }
   const [explanation, setExplanation] = useState(editing ? (editing.question.explanation || "") : "");
   const [source, setSource] = useState(editing ? (editing.question.source || "") : "");
   const [form, setForm] = useState(editing ? formFromQuestion(editing.question) : emptyFormForType("sc"));
@@ -1136,8 +1272,31 @@ function AddQuestionScreen({ chapters, userId, editing, onDone, onCancel }) {
         <label className="fdv-label">{type === "tf" ? "Aussage" : "Frage"}</label>
         <textarea className="fdv-input" rows={2} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
 
-        <label className="fdv-label">Bild-URL (optional)</label>
-        <input className="fdv-input" type="text" placeholder="https://…" value={image} onChange={(e) => setImage(e.target.value)} />
+        <label className="fdv-label">Bild (optional)</label>
+        <div className="fdv-form-row">
+          <input
+            type="file"
+            accept="image/*"
+            disabled={uploadingImage}
+            onChange={(e) => uploadImage(e.target.files && e.target.files[0])}
+          />
+          {uploadingImage && <span className="fdv-sub" style={{ margin: 0 }}>Lädt hoch …</span>}
+        </div>
+        {uploadError && <div className="fdv-form-error">{uploadError}</div>}
+        {image && (
+          <div className="fdv-image-preview-row">
+            <img src={image} alt="" className="fdv-image-preview" />
+            <button type="button" className="fdv-link-btn" onClick={() => setImage("")}>Bild entfernen</button>
+          </div>
+        )}
+        <input
+          className="fdv-input"
+          type="text"
+          placeholder="…oder Bild-URL einfügen"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          style={{ marginTop: 8 }}
+        />
 
         {type === "sc" && (
           <>
@@ -1429,6 +1588,207 @@ function ReportsScreen({ onCancel, onEdit }) {
   );
 }
 
+// ---- Admin screen: bulk import questions from an Excel file ----
+function cellStr(row, i) {
+  const v = row[i];
+  return v === undefined || v === null ? "" : String(v).trim();
+}
+function isTrueCell(v) {
+  const s = String(v || "").trim().toLowerCase();
+  return s === "wahr" || s === "true" || s === "ja" || s === "j" || s === "1";
+}
+
+function parseWorkbookToRows(workbook, validChapterCodes) {
+  const rows = [];
+  const warnings = [];
+
+  function sheetRows(name) {
+    const sheet = workbook.Sheets[name];
+    if (!sheet) return [];
+    return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }).slice(1);
+  }
+
+  function checkChapter(code, sheetName, rowNum) {
+    if (!code) return false;
+    if (!validChapterCodes.has(code)) {
+      warnings.push(`${sheetName} Zeile ${rowNum + 2}: Kapitel "${code}" existiert nicht – Zeile wird übersprungen.`);
+      return false;
+    }
+    return true;
+  }
+
+  sheetRows("SC").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "SC", i)) return;
+    const image = cellStr(r, 2);
+    const correct = cellStr(r, 3), w1 = cellStr(r, 4), w2 = cellStr(r, 5), w3 = cellStr(r, 6);
+    const explanation = cellStr(r, 7);
+    const source = cellStr(r, 8);
+    if (!prompt || !correct) { warnings.push(`SC Zeile ${i + 2}: Frage oder richtige Antwort fehlt – übersprungen.`); return; }
+    const options = [correct, w1, w2, w3].filter((o) => o !== "");
+    rows.push({
+      chapter_code, type: "sc", prompt,
+      image: image.startsWith("http") ? image : null,
+      explanation, source: source || null,
+      payload: { options, correctIndex: 0 },
+    });
+  });
+
+  sheetRows("MS").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "MS", i)) return;
+    const image = cellStr(r, 2);
+    const options = [], correctIndices = [];
+    for (let k = 0; k < 4; k++) {
+      const opt = cellStr(r, 3 + k * 2);
+      if (!opt) continue;
+      if (isTrueCell(r[4 + k * 2])) correctIndices.push(options.length);
+      options.push(opt);
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || options.length < 2 || correctIndices.length < 1) { warnings.push(`MS Zeile ${i + 2}: zu wenige Optionen oder keine richtige markiert – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "ms", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { options, correctIndices } });
+  });
+
+  sheetRows("TF").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "TF", i)) return;
+    const image = cellStr(r, 2);
+    const answer = r[3];
+    const explanation = cellStr(r, 4);
+    const source = cellStr(r, 5);
+    if (!prompt) { warnings.push(`TF Zeile ${i + 2}: Aussage fehlt – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "tf", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { correct: isTrueCell(answer) } });
+  });
+
+  sheetRows("TFM").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "TFM", i)) return;
+    const image = cellStr(r, 2);
+    const statements = [];
+    for (let k = 0; k < 4; k++) {
+      const text = cellStr(r, 3 + k * 2);
+      if (!text) continue;
+      statements.push({ text, correct: isTrueCell(r[4 + k * 2]) });
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || statements.length < 1) { warnings.push(`TFM Zeile ${i + 2}: keine Teilaussagen – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "tfm", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { statements } });
+  });
+
+  sheetRows("Matching").forEach((r, i) => {
+    const chapter_code = cellStr(r, 0);
+    const prompt = cellStr(r, 1);
+    if (!chapter_code && !prompt) return;
+    if (!checkChapter(chapter_code, "Matching", i)) return;
+    const image = cellStr(r, 2);
+    const pairs = [];
+    for (let k = 0; k < 4; k++) {
+      const left = cellStr(r, 3 + k * 2), right = cellStr(r, 4 + k * 2);
+      if (!left || !right) continue;
+      pairs.push({ left, right });
+    }
+    const explanation = cellStr(r, 11);
+    const source = cellStr(r, 12);
+    if (!prompt || pairs.length < 2) { warnings.push(`Matching Zeile ${i + 2}: zu wenige vollständige Paare – übersprungen.`); return; }
+    rows.push({ chapter_code, type: "matching", prompt, image: image.startsWith("http") ? image : null, explanation, source: source || null, payload: { pairs } });
+  });
+
+  return { rows, warnings };
+}
+
+function ImportScreen({ chapters, onCancel, onDone }) {
+  const [parsed, setParsed] = useState(null);
+  const [warnings, setWarnings] = useState([]);
+  const [error, setError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [resultMsg, setResultMsg] = useState("");
+
+  function handleFile(file) {
+    if (!file) return;
+    setError("");
+    setParsed(null);
+    setResultMsg("");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const validCodes = new Set(chapters.map((c) => c.code));
+        const { rows, warnings } = parseWorkbookToRows(workbook, validCodes);
+        setParsed(rows);
+        setWarnings(warnings);
+      } catch (err) {
+        setError("Datei konnte nicht gelesen werden: " + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function doImport() {
+    if (!parsed || parsed.length === 0) return;
+    setImporting(true);
+    setError("");
+    const { error } = await sb.from("questions").insert(parsed);
+    setImporting(false);
+    if (error) {
+      setError("Import fehlgeschlagen: " + error.message);
+      return;
+    }
+    setResultMsg(parsed.length + " Fragen erfolgreich importiert.");
+    setParsed(null);
+    onDone();
+  }
+
+  const counts = parsed ? parsed.reduce((acc, r) => ((acc[r.type] = (acc[r.type] || 0) + 1), acc), {}) : null;
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Excel-Import</span>
+      <p className="fdv-sub">
+        Datei mit den Tabellenblättern SC, MS, TF, TFM, Matching hochladen (gleicher Aufbau wie die bisherige Vorlage: Kapitel, Frage, Bild, Antworten, Erklärung, optional Quelle).
+      </p>
+      <input type="file" accept=".xlsx,.xls" onChange={(e) => handleFile(e.target.files && e.target.files[0])} />
+
+      {error && <div className="fdv-form-error">{error}</div>}
+      {resultMsg && <div className="fdv-explanation"><strong>Fertig.</strong> {resultMsg}</div>}
+
+      {warnings.length > 0 && (
+        <div className="fdv-form-error" style={{ marginTop: 12 }}>
+          {warnings.length} Zeile(n) übersprungen:
+          <ul style={{ margin: "6px 0 0 18px", padding: 0 }}>
+            {warnings.slice(0, 20).map((w, i) => <li key={i}>{w}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {parsed && (
+        <div className="fdv-explanation">
+          <strong>{parsed.length} Fragen bereit zum Import:</strong>{" "}
+          {Object.entries(counts).map(([t, n]) => `${TYPE_LABEL[t] || t}: ${n}`).join(", ") || "keine"}
+        </div>
+      )}
+
+      <div className="fdv-form-actions">
+        <button type="button" className="fdv-result-btn" onClick={onCancel}>Zurück</button>
+        <button type="button" className="fdv-result-btn primary" disabled={!parsed || parsed.length === 0 || importing} onClick={doImport}>
+          {importing ? "Importiere …" : "Import starten"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---- Main app ----
 function FdvTrainerCloud() {
   const [session, setSession] = useState(null);
@@ -1706,13 +2066,16 @@ function FdvTrainerCloud() {
             <button className="fdv-add-btn" onClick={() => setScreen("add")}>+ Neue Frage hinzufügen</button>
           )}
           {isAdmin && (
-            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>+ Neuen Nutzer hinzufügen</button>
+            <button className="fdv-add-btn" onClick={() => setScreen("adduser")}>👤 Nutzerverwaltung</button>
           )}
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("trash")}>🗑 Papierkorb</button>
           )}
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("reports")}>🚩 Gemeldete Fragen</button>
+          )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("import")}>📥 Excel-Import</button>
           )}
 
           <div className="fdv-section-label">Kapitel</div>
@@ -1757,10 +2120,11 @@ function FdvTrainerCloud() {
         <>
           <div className="fdv-quiz-top">
             <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
-            <span className="fdv-quiz-title">Neuer Nutzer</span>
+            <span className="fdv-quiz-title">Nutzerverwaltung</span>
           </div>
-          <AddUserScreen
+          <UsersScreen
             accessToken={session.access_token}
+            currentUserId={session.user.id}
             onCancel={() => setScreen("home")}
           />
         </>
@@ -1788,6 +2152,20 @@ function FdvTrainerCloud() {
           <ReportsScreen
             onCancel={() => setScreen("home")}
             onEdit={(qId) => startEdit(qId)}
+          />
+        </>
+      )}
+
+      {screen === "import" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Excel-Import</span>
+          </div>
+          <ImportScreen
+            chapters={chapters}
+            onCancel={() => setScreen("home")}
+            onDone={() => loadData(session.user.id)}
           />
         </>
       )}
