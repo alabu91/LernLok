@@ -1789,6 +1789,162 @@ function ImportScreen({ chapters, onCancel, onDone }) {
   );
 }
 
+// ---- Admin screen: manage chapters (create, rename, reorder, delete) ----
+function ChaptersScreen({ onCancel, onChanged }) {
+  const [rows, setRows] = useState(null);
+  const [counts, setCounts] = useState({});
+  const [error, setError] = useState("");
+  const [busyCode, setBusyCode] = useState(null);
+  const [edits, setEdits] = useState({}); // code -> { title, sort_order }
+  const [newCode, setNewCode] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const load = useCallback(async () => {
+    setError("");
+    const { data: chapterRows, error: chErr } = await sb.from("chapters").select("*").order("sort_order").order("code");
+    if (chErr) { setError("Laden fehlgeschlagen: " + chErr.message); return; }
+    const { data: qRows, error: qErr } = await sb.from("questions").select("chapter_code");
+    if (qErr) { setError("Laden fehlgeschlagen: " + qErr.message); return; }
+    const c = {};
+    (qRows || []).forEach((r) => { c[r.chapter_code] = (c[r.chapter_code] || 0) + 1; });
+    setCounts(c);
+    setRows(chapterRows || []);
+    const nextEdits = {};
+    (chapterRows || []).forEach((ch) => { nextEdits[ch.code] = { title: ch.title, sort_order: ch.sort_order }; });
+    setEdits(nextEdits);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  function setEdit(code, field, value) {
+    setEdits((e) => ({ ...e, [code]: { ...e[code], [field]: value } }));
+  }
+
+  async function saveRow(ch) {
+    const edit = edits[ch.code];
+    if (!edit || !edit.title || !edit.title.trim()) {
+      setError("Der Titel darf nicht leer sein.");
+      return;
+    }
+    setBusyCode(ch.code);
+    setError("");
+    const { error } = await sb
+      .from("chapters")
+      .update({ title: edit.title.trim(), sort_order: Number(edit.sort_order) || 0 })
+      .eq("code", ch.code);
+    setBusyCode(null);
+    if (error) { setError("Speichern fehlgeschlagen: " + error.message); return; }
+    await load();
+    onChanged();
+  }
+
+  async function removeChapter(ch) {
+    const n = counts[ch.code] || 0;
+    if (n > 0) {
+      window.alert(
+        "Dieses Kapitel hat noch " + n + " Frage(n) (inkl. Papierkorb) und kann deshalb nicht gelöscht werden.\n\n" +
+        "Verschiebe oder lösche zuerst alle zugehörigen Fragen."
+      );
+      return;
+    }
+    if (!window.confirm('Kapitel "' + ch.title + '" (' + ch.code + ") wirklich löschen?")) return;
+    setBusyCode(ch.code);
+    setError("");
+    const { error } = await sb.from("chapters").delete().eq("code", ch.code);
+    setBusyCode(null);
+    if (error) { setError("Löschen fehlgeschlagen: " + error.message); return; }
+    await load();
+    onChanged();
+  }
+
+  async function createChapter(e) {
+    e.preventDefault();
+    setError("");
+    const code = newCode.trim();
+    const title = newTitle.trim();
+    if (!code || !title) {
+      setError("Bitte Code und Titel für das neue Kapitel angeben.");
+      return;
+    }
+    setCreating(true);
+    const maxSort = rows && rows.length > 0 ? Math.max(...rows.map((r) => r.sort_order || 0)) : 0;
+    const { error } = await sb.from("chapters").insert({ code, title, sort_order: maxSort + 10 });
+    setCreating(false);
+    if (error) {
+      setError("Anlegen fehlgeschlagen: " + error.message);
+      return;
+    }
+    setNewCode("");
+    setNewTitle("");
+    await load();
+    onChanged();
+  }
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Neues Kapitel</span>
+      <form onSubmit={createChapter}>
+        <label className="fdv-label">Code (intern, eindeutig, z.B. 300.15 oder RLC2)</label>
+        <input className="fdv-input" type="text" value={newCode} onChange={(e) => setNewCode(e.target.value)} />
+        <label className="fdv-label">Titel (angezeigter Name)</label>
+        <input className="fdv-input" type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+        <div className="fdv-form-actions">
+          <button type="submit" className="fdv-result-btn primary" disabled={creating}>
+            {creating ? "Anlegen …" : "Kapitel anlegen"}
+          </button>
+        </div>
+      </form>
+
+      {error && <div className="fdv-form-error">{error}</div>}
+
+      <div className="fdv-section-label" style={{ marginTop: 24 }}>Bestehende Kapitel</div>
+      {rows === null && <p className="fdv-sub">Lädt …</p>}
+      {rows && (
+        <div className="fdv-trash-list">
+          {rows.map((ch) => {
+            const edit = edits[ch.code] || { title: ch.title, sort_order: ch.sort_order };
+            const n = counts[ch.code] || 0;
+            return (
+              <div className="fdv-trash-item" key={ch.code}>
+                <div className="fdv-trash-meta">
+                  <span className="fdv-trash-chapter">{ch.code}</span>
+                  <span className="fdv-sub" style={{ margin: 0 }}>{n} Frage(n)</span>
+                </div>
+                <label className="fdv-label">Titel</label>
+                <input
+                  className="fdv-input"
+                  type="text"
+                  value={edit.title}
+                  onChange={(e) => setEdit(ch.code, "title", e.target.value)}
+                />
+                <label className="fdv-label">Reihenfolge (kleinere Zahl = weiter oben)</label>
+                <input
+                  className="fdv-input fdv-input-narrow"
+                  type="number"
+                  value={edit.sort_order}
+                  onChange={(e) => setEdit(ch.code, "sort_order", e.target.value)}
+                />
+                <div className="fdv-form-actions">
+                  <button type="button" className="fdv-result-btn warn" disabled={busyCode === ch.code} onClick={() => removeChapter(ch)}>
+                    Löschen
+                  </button>
+                  <button type="button" className="fdv-result-btn primary" disabled={busyCode === ch.code} onClick={() => saveRow(ch)}>
+                    Speichern
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
 // ---- Main app ----
 function FdvTrainerCloud() {
   const [session, setSession] = useState(null);
@@ -2077,6 +2233,9 @@ function FdvTrainerCloud() {
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("import")}>📥 Excel-Import</button>
           )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("chapters")}>📚 Kapitel verwalten</button>
+          )}
 
           <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
@@ -2166,6 +2325,19 @@ function FdvTrainerCloud() {
             chapters={chapters}
             onCancel={() => setScreen("home")}
             onDone={() => loadData(session.user.id)}
+          />
+        </>
+      )}
+
+      {screen === "chapters" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Kapitel verwalten</span>
+          </div>
+          <ChaptersScreen
+            onCancel={() => setScreen("home")}
+            onChanged={() => loadData(session.user.id)}
           />
         </>
       )}
