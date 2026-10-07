@@ -1945,6 +1945,129 @@ function ChaptersScreen({ onCancel, onChanged }) {
   );
 }
 
+// ---- Admin screen: team overview across all users ----
+function TeamScreen({ accessToken, chapters, onCancel }) {
+  const [userStats, setUserStats] = useState(null);
+  const [chapterStatsTeam, setChapterStatsTeam] = useState(null);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+    setUserStats(null);
+    setChapterStatsTeam(null);
+    try {
+      const [usersRes, progressRes] = await Promise.all([
+        callUserAdmin(accessToken, { action: "list" }),
+        sb.from("progress").select("*"),
+      ]);
+      if (progressRes.error) throw new Error(progressRes.error.message);
+      const progressRows = progressRes.data || [];
+
+      // question_id -> chapter_code lookup, from the already-loaded chapters.
+      const qToChapter = {};
+      chapters.forEach((c) => c.questions.forEach((q) => { qToChapter[q.id] = c.code; }));
+
+      // Per user.
+      const byUser = {};
+      (usersRes.users || []).forEach((u) => {
+        byUser[u.id] = { email: u.email || "(keine E-Mail)", attempted: 0, correct: 0, lastActive: null };
+      });
+      // Per chapter, team-wide.
+      const byChapter = {};
+      chapters.forEach((c) => { byChapter[c.code] = { title: c.title, attempted: 0, correct: 0 }; });
+
+      progressRows.forEach((p) => {
+        if (byUser[p.user_id]) {
+          byUser[p.user_id].attempted += 1;
+          if (p.last_correct) byUser[p.user_id].correct += 1;
+          if (!byUser[p.user_id].lastActive || p.updated_at > byUser[p.user_id].lastActive) {
+            byUser[p.user_id].lastActive = p.updated_at;
+          }
+        }
+        const code = qToChapter[p.question_id];
+        if (code && byChapter[code]) {
+          byChapter[code].attempted += 1;
+          if (p.last_correct) byChapter[code].correct += 1;
+        }
+      });
+
+      const userList = Object.values(byUser).sort((a, b) => b.attempted - a.attempted);
+      const chapterList = Object.entries(byChapter)
+        .map(([code, s]) => ({ code, ...s, pct: s.attempted > 0 ? Math.round((s.correct / s.attempted) * 100) : null }))
+        .filter((c) => c.attempted > 0)
+        .sort((a, b) => a.pct - b.pct);
+
+      setUserStats(userList);
+      setChapterStatsTeam(chapterList);
+    } catch (e) {
+      setError("Laden fehlgeschlagen: " + e.message);
+    }
+  }, [accessToken, chapters]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="fdv-card">
+      <span className="fdv-type-tag">Team-Übersicht</span>
+      {error && <div className="fdv-form-error">{error}</div>}
+      {userStats === null && !error && <p className="fdv-sub">Lädt …</p>}
+
+      {chapterStatsTeam && chapterStatsTeam.length > 0 && (
+        <>
+          <div className="fdv-section-label">Schwächste Kapitel (Team)</div>
+          <div className="fdv-trash-list">
+            {chapterStatsTeam.map((c) => (
+              <div className="fdv-trash-item" key={c.code}>
+                <div className="fdv-trash-meta">
+                  <span className="fdv-trash-chapter">{c.code}</span>
+                  <span
+                    className="fdv-type-tag"
+                    style={{
+                      color: c.pct >= 80 ? "var(--green)" : c.pct >= 50 ? "var(--amber)" : "var(--red)",
+                      borderColor: c.pct >= 80 ? "var(--green)" : c.pct >= 50 ? "var(--amber)" : "var(--red)",
+                    }}
+                  >
+                    {c.pct}%
+                  </span>
+                </div>
+                <div className="fdv-trash-prompt">{c.title}</div>
+                <div className="fdv-sub" style={{ margin: 0 }}>{c.correct}/{c.attempted} richtig (alle Nutzer zusammen)</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {userStats && (
+        <>
+          <div className="fdv-section-label" style={{ marginTop: 24 }}>Fortschritt pro Nutzer</div>
+          {userStats.length === 0 && <p className="fdv-sub">Noch keine Nutzer.</p>}
+          <div className="fdv-trash-list">
+            {userStats.map((u) => {
+              const pct = u.attempted > 0 ? Math.round((u.correct / u.attempted) * 100) : null;
+              return (
+                <div className="fdv-trash-item" key={u.email}>
+                  <div className="fdv-trash-prompt">{u.email}</div>
+                  <div className="fdv-sub" style={{ margin: 0 }}>
+                    {u.attempted > 0
+                      ? `${u.attempted} Fragen geübt · ${pct}% richtig`
+                      : "Noch nicht geübt"}
+                    {u.lastActive ? " · zuletzt aktiv " + new Date(u.lastActive).toLocaleDateString("de-CH") : ""}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <button type="button" className="fdv-result-btn" style={{ marginTop: 16, width: "100%" }} onClick={onCancel}>
+        Zurück
+      </button>
+    </div>
+  );
+}
+
 // ---- Main app ----
 function FdvTrainerCloud() {
   const [session, setSession] = useState(null);
@@ -2236,6 +2359,9 @@ function FdvTrainerCloud() {
           {isAdmin && (
             <button className="fdv-add-btn" onClick={() => setScreen("chapters")}>📚 Kapitel verwalten</button>
           )}
+          {isAdmin && (
+            <button className="fdv-add-btn" onClick={() => setScreen("team")}>📊 Team-Übersicht</button>
+          )}
 
           <div className="fdv-section-label">Kapitel</div>
           <div className="fdv-chapter-list">
@@ -2338,6 +2464,20 @@ function FdvTrainerCloud() {
           <ChaptersScreen
             onCancel={() => setScreen("home")}
             onChanged={() => loadData(session.user.id)}
+          />
+        </>
+      )}
+
+      {screen === "team" && isAdmin && (
+        <>
+          <div className="fdv-quiz-top">
+            <button className="fdv-back-btn" onClick={() => setScreen("home")}>Zurück</button>
+            <span className="fdv-quiz-title">Team-Übersicht</span>
+          </div>
+          <TeamScreen
+            accessToken={session.access_token}
+            chapters={chapters}
+            onCancel={() => setScreen("home")}
           />
         </>
       )}
