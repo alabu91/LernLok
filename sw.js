@@ -1,10 +1,10 @@
-// LernLok service worker: caches the app shell + pinned library files so the
+// LokWerk300 service worker: caches the app shell + pinned library files so the
 // app still opens and runs (React/Babel/Supabase-client available) without a
 // network connection, e.g. in a tunnel. It never caches calls to the
 // Supabase project itself (auth/rest/functions) - those must always be live,
 // since they carry the actual questions, progress and login data.
 
-const CACHE_NAME = "lernlok-shell-v1";
+const CACHE_NAME = "lokwerk300-shell-v1";
 
 const APP_SHELL = [
   "./",
