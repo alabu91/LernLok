@@ -1041,8 +1041,27 @@ function UsersScreen({ accessToken, currentUserId, onCancel }) {
   );
 }
 
+// ---- Info / Haftungsausschluss ----
+function InfoScreen({ onBack }) {
+  return (
+    <div className="fdv-app">
+      <div className="fdv-quiz-top">
+        <button className="fdv-back-btn" onClick={onBack}>Zurück</button>
+        <span className="fdv-quiz-title">Info</span>
+      </div>
+      <div className="fdv-card" style={{ lineHeight: 1.6 }}>
+        <h2 style={{ marginTop: 0, fontSize: 18 }}>Hinweis zur Nutzung der Übungs-App LokWerk300</h2>
+        <p><strong>Haftungsausschluss:</strong><br />Es gelten jederzeit die offiziellen und aktuellen Dokumente.</p>
+        <p>Sollten Fehler auffallen, können diese unter <a href="mailto:lokwerk300@gmail.com">lokwerk300@gmail.com</a> gemeldet werden.</p>
+        <p>Besten Dank!</p>
+        <p style={{ marginBottom: 0 }}>Freundliche Grüsse,<br />Alain</p>
+      </div>
+    </div>
+  );
+}
+
 // ---- Login screen ----
-function LoginScreen({ onLoggedIn }) {
+function LoginScreen({ onLoggedIn, onShowInfo }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -1079,6 +1098,7 @@ function LoginScreen({ onLoggedIn }) {
         <p className="fdv-sub" style={{ marginTop: 16 }}>
           Noch keinen Zugang? Frag die Person, die diese App verwaltet, um ein Konto.
         </p>
+        <p className="fdv-sub"><button className="fdv-link-btn" type="button" onClick={onShowInfo}>Info &amp; Haftungsausschluss</button></p>
       </div>
     </div>
   );
@@ -2078,6 +2098,7 @@ function FdvTrainerCloud() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingQ, setEditingQ] = useState(null);
   const [screen, setScreen] = useState("home");
+  const [showInfo, setShowInfo] = useState(false);
   const [session_, setSessionQuiz] = useState(null); // quiz session
   const [draft, setDraft] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -2292,7 +2313,8 @@ function FdvTrainerCloud() {
     return <div className="fdv-app"><p className="fdv-sub">Lädt …</p></div>;
   }
   if (!session) {
-    return <LoginScreen onLoggedIn={setSession} />;
+    if (showInfo) return <InfoScreen onBack={() => setShowInfo(false)} />;
+    return <LoginScreen onLoggedIn={setSession} onShowInfo={() => setShowInfo(true)} />;
   }
   if (session.user.user_metadata && session.user.user_metadata.must_change_password) {
     return (
@@ -2380,8 +2402,13 @@ function FdvTrainerCloud() {
               );
             })}
           </div>
+          <p className="fdv-sub" style={{ marginTop: 20, textAlign: "center" }}>
+            <button className="fdv-link-btn" onClick={() => setScreen("info")}>Info &amp; Haftungsausschluss</button>
+          </p>
         </>
       )}
+
+      {screen === "info" && <InfoScreen onBack={() => setScreen("home")} />}
 
       {screen === "add" && isAdmin && (
         <>
